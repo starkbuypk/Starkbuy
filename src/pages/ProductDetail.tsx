@@ -12,7 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from '../utils/toast';
 import { IconChevronRight, IconHeart, IconTruck, IconShield, IconRefresh } from '../components/icons/Icons';
 import { getReviews, addReview, hasUserReviewed, type Review } from '../utils/reviews';
-import { getFreeShippingThreshold } from '../utils/adminStore';
+import { useShippingConfig } from '../hooks/useStoreData';
 import { BRAND } from '../config';
 
 /* ── Star picker ──────────────────────────────────────────────── */
@@ -225,6 +225,7 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
 /* ── Main page ────────────────────────────────────────────────── */
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const { threshold: freeShipThreshold } = useShippingConfig();
   const allProducts = useAllProducts();
   const product = getProductBySlug(slug ?? '') ?? allProducts.find(p => p.slug === slug);
   const navigate = useNavigate();
@@ -390,6 +391,7 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
                     src={activeMedia.src}
                     controls
                     autoPlay
+                    muted
                     playsInline
                     preload="auto"
                     style={{ width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280, display: 'block' }}
@@ -571,7 +573,7 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
             {/* Trust strip */}
             <div style={{ display: 'flex', gap: '0.875rem', flexWrap: 'wrap', padding: '0.75rem 0', borderTop: '1px solid rgba(26,22,20,0.08)' }}>
               {[
-                { icon: <IconTruck size={13} />, text: `Free delivery above ${BRAND.currencySymbol} ${getFreeShippingThreshold().toLocaleString()}` },
+                { icon: <IconTruck size={13} />, text: `Free delivery above ${BRAND.currencySymbol} ${freeShipThreshold.toLocaleString()}` },
                 { icon: <IconShield size={13} />, text: '12-month warranty' },
                 { icon: <IconRefresh size={13} />, text: '7-day returns' },
               ].map((item, i) => (

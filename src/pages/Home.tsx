@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/ProductCard';
 import { IconArrowRight, IconChevronLeft, IconChevronRight, IconTruck, IconShield, IconRefresh, IconMapPin } from '../components/icons/Icons';
 import { BRAND } from '../config';
-import { getFreeShippingThreshold } from '../utils/adminStore';
+import { useShippingConfig } from '../hooks/useStoreData';
 import { getRecentIds } from '../utils/recentlyViewed';
 import { useAllProducts, useSlides, useCategories, useNewArrivals } from '../hooks/useStoreData';
 import { useSEO } from '../hooks/useSEO';
@@ -173,8 +173,9 @@ function HeroSlider() {
 
 /* ── USP Strip ────────────────────────────────────────────────── */
 function UspStrip() {
+  const { threshold } = useShippingConfig();
   const items = [
-    { icon: <IconTruck />, label: 'Free delivery', sub: `On orders above ${BRAND.currencySymbol} ${getFreeShippingThreshold().toLocaleString()}` },
+    { icon: <IconTruck />, label: 'Free delivery', sub: `On orders above ${BRAND.currencySymbol} ${threshold.toLocaleString()}` },
     { icon: <IconMapPin />, label: 'Cash on delivery', sub: 'At your doorstep, Pakistan-wide' },
     { icon: <IconShield />, label: '12-month warranty', sub: 'On every watch we sell' },
     { icon: <IconRefresh />, label: '7-day returns', sub: 'Unused, in original packaging' },
@@ -497,9 +498,10 @@ function RecentlyViewed() {
 
 /* ── Page ─────────────────────────────────────────────────────── */
 export default function Home() {
+  const { threshold: freeThreshold } = useShippingConfig();
   useSEO({
     title: 'StarkBuy — Premium Watches in Pakistan | COD Available',
-    description: `Shop Analog, Chronograph, Sports & Automatic watches in Pakistan. Cash on delivery, free shipping above ${BRAND.currencySymbol} ${getFreeShippingThreshold().toLocaleString()}. Genuine timepieces at the best prices.`,
+    description: `Shop Analog, Chronograph, Sports & Automatic watches in Pakistan. Cash on delivery, free shipping above ${BRAND.currencySymbol} ${freeThreshold.toLocaleString()}. Genuine timepieces at the best prices.`,
     canonical: '/',
     ogType: 'website',
     jsonLd: [
@@ -537,7 +539,7 @@ export default function Home() {
         '@type': 'FAQPage',
         mainEntity: [
           { '@type': 'Question', name: 'Do you deliver cash on delivery across Pakistan?', acceptedAnswer: { '@type': 'Answer', text: 'Yes, StarkBuy offers cash on delivery (COD) to all cities in Pakistan including Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Peshawar, Quetta, and more.' } },
-          { '@type': 'Question', name: 'How long does delivery take?', acceptedAnswer: { '@type': 'Answer', text: `Standard delivery takes 1–3 working days. Orders above ${BRAND.currencySymbol} ${getFreeShippingThreshold().toLocaleString()} get free shipping.` } },
+          { '@type': 'Question', name: 'How long does delivery take?', acceptedAnswer: { '@type': 'Answer', text: `Standard delivery takes 1–3 working days. Orders above ${BRAND.currencySymbol} ${freeThreshold.toLocaleString()} get free shipping.` } },
           { '@type': 'Question', name: 'What is your return and exchange policy?', acceptedAnswer: { '@type': 'Answer', text: 'We accept exchanges within 7 days of delivery for unworn watches in original packaging. Contact us on WhatsApp with your order number.' } },
           { '@type': 'Question', name: 'Can I pay online and get a discount?', acceptedAnswer: { '@type': 'Answer', text: 'Yes! Prepaid orders via JazzCash, EasyPaisa, or bank transfer get an instant 10% discount on your total.' } },
           { '@type': 'Question', name: 'What types of watches do you sell?', acceptedAnswer: { '@type': 'Answer', text: 'StarkBuy sells Analog, Chronograph, Sports, Automatic, and Luxury watches. All watches come with a 12-month warranty.' } },

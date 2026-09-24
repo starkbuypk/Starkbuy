@@ -1403,9 +1403,11 @@ function Settings() {
   const [shippingCostState, setShippingCostState] = useState(() => getShippingCost());
   const [shippingSaved, setShippingSaved] = useState(false);
 
-  function saveShipping() {
+  async function saveShipping() {
     saveFreeShippingThreshold(freeShippingThreshold);
     saveShippingCost(shippingCostState);
+    await dbSetConfig('shipping', { threshold: freeShippingThreshold, cost: shippingCostState });
+    window.dispatchEvent(new CustomEvent('sb-shipping-updated'));
     setShippingSaved(true);
     setTimeout(() => setShippingSaved(false), 2000);
   }

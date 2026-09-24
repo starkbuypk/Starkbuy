@@ -6,7 +6,7 @@ import type { WatchCategory, WatchGender } from '../data/products';
 import { useAllProducts } from '../hooks/useStoreData';
 import { ProductCard } from '../components/ProductCard';
 import { IconChevronRight } from '../components/icons/Icons';
-import { getFreeShippingThreshold } from '../utils/adminStore';
+import { useShippingConfig } from '../hooks/useStoreData';
 import { BRAND } from '../config';
 
 const CATEGORIES: WatchCategory[] = ['Analog', 'Chronograph', 'Sports', 'A+ Replica', 'Automatic', 'Luxury', 'Smart', 'Sale'];
@@ -114,6 +114,7 @@ function Pagination({ page, total, pageSize, onChange }: { page: number; total: 
 
 export default function Collections() {
   const { category } = useParams<{ category?: string }>();
+  const { threshold: freeShipThreshold } = useShippingConfig();
   const products = useAllProducts();
   const [sort, setSort] = useState<SortValue>('popular');
   const [page, setPage] = useState(1);
@@ -126,7 +127,7 @@ export default function Collections() {
   const catLabel = activeCategory === 'All' ? 'All Watches' : activeCategory;
   useSEO({
     title: activeCategory === 'All' ? 'Shop All Watches | StarkBuy Pakistan' : `${catLabel} Watches in Pakistan | StarkBuy`,
-    description: `Browse ${catLabel.toLowerCase()} watches in Pakistan. Cash on delivery available. Free shipping on orders above ${BRAND.currencySymbol} ${getFreeShippingThreshold().toLocaleString()}. Shop now at StarkBuy.`,
+    description: `Browse ${catLabel.toLowerCase()} watches in Pakistan. Cash on delivery available. Free shipping on orders above ${BRAND.currencySymbol} ${freeShipThreshold.toLocaleString()}. Shop now at StarkBuy.`,
     canonical: activeCategory === 'All' ? '/collections' : `/collections/${activeCategory.toLowerCase().replace(/[^a-z]/g, '')}`,
     jsonLd: {
       '@context': 'https://schema.org',

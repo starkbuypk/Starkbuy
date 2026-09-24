@@ -68,3 +68,26 @@ export function useCategories(): CategoryConfig[] {
 export function useNewArrivals(allProducts: Product[]): Product[] {
   return allProducts.filter(p => p.newArrival);
 }
+
+export const EV_SHIPPING = 'sb-shipping-updated';
+
+export function useShippingConfig() {
+  const [threshold, setThreshold] = useState<number>(5000);
+  const [cost, setCost] = useState<number>(200);
+
+  async function refresh() {
+    const data = await dbGetConfig<{ threshold: number; cost: number }>('shipping');
+    if (data) {
+      setThreshold(data.threshold);
+      setCost(data.cost);
+    }
+  }
+
+  useEffect(() => {
+    refresh();
+    window.addEventListener(EV_SHIPPING, refresh);
+    return () => window.removeEventListener(EV_SHIPPING, refresh);
+  }, []);
+
+  return { threshold, cost };
+}

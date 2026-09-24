@@ -61,7 +61,7 @@ export function saveAbout(data: AboutContent): void {
 }
 
 const KEY_FREE_SHIPPING = 'sb_free_shipping_threshold';
-const DEFAULT_FREE_SHIPPING = 2000;
+const DEFAULT_FREE_SHIPPING = 5000;
 
 export function getFreeShippingThreshold(): number {
   try {

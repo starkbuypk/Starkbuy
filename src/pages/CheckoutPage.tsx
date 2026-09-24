@@ -5,7 +5,7 @@ import { formatPrice } from '../data/products';
 import { BRAND } from '../config';
 import { IconChevronRight, IconShield, IconTruck } from '../components/icons/Icons';
 import { toast } from '../utils/toast';
-import { getFreeShippingThreshold, getShippingCost } from '../utils/adminStore';
+import { useShippingConfig } from '../hooks/useStoreData';
 import { dbPlaceOrder, dbSaveOrder, dbValidateCoupon, type StoredCoupon, type PlaceOrderResult } from '../utils/supabaseStore';
 import { supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 
@@ -193,8 +193,9 @@ function OrderSummary({
   setAppliedCoupon: (v: StoredCoupon | null) => void;
 }) {
   const { items, subtotal } = useCart();
+  const { threshold: freeThreshold, cost: shipCost } = useShippingConfig();
   const couponDiscount = calcDiscount(appliedCoupon, subtotal);
-  const shipping = subtotal >= getFreeShippingThreshold() ? 0 : getShippingCost();
+  const shipping = subtotal >= freeThreshold ? 0 : shipCost;
   const total = subtotal - couponDiscount + shipping;
 
   async function applyCoupon() {
@@ -290,7 +291,7 @@ function OrderSummary({
             <span style={{ color: 'var(--luna-2)' }}><IconShield size={13} /></span> Secure checkout
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: 'var(--luna-muted)' }}>
-            <span style={{ color: 'var(--luna-2)' }}><IconTruck size={13} /></span> Free above {BRAND.currencySymbol} {getFreeShippingThreshold().toLocaleString()}
+            <span style={{ color: 'var(--luna-2)' }}><IconTruck size={13} /></span> Free above {BRAND.currencySymbol} {freeThreshold.toLocaleString()}
           </div>
         </div>
       </div>
@@ -339,6 +340,7 @@ function ContactStep({ data, onChange, onNext }: { data: ContactForm; onChange: 
 
 /* ── Shipping step ────────────────────────────────────────────── */
 function ShippingStep({ data, onChange, onNext, onBack, isPlacing }: { data: ShippingForm; onChange: (f: Partial<ShippingForm>) => void; onNext: () => void; onBack: () => void; isPlacing: boolean }) {
+  const { threshold: freeThreshold } = useShippingConfig();
   const valid = data.street.trim() && data.city.trim();
   return (
     <div>
@@ -354,7 +356,7 @@ function ShippingStep({ data, onChange, onNext, onBack, isPlacing }: { data: Shi
       <div style={{ background: 'rgba(26,22,20,0.05)', border: '1px solid rgba(26,22,20,0.09)', borderRadius: 'var(--radius)', padding: '0.875rem 1.25rem', marginBottom: '1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
         <span style={{ color: 'var(--luna-2)', flexShrink: 0, marginTop: '0.125rem' }}><IconTruck size={15} /></span>
         <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--luna-muted)', lineHeight: 1.6 }}>
-          Standard delivery 1–3 working days. Free shipping on orders above {BRAND.currencySymbol} {getFreeShippingThreshold().toLocaleString()}. Cash on delivery available at your doorstep.
+          Standard delivery 1–3 working days. Free shipping on orders above {BRAND.currencySymbol} {freeThreshold.toLocaleString()}. Cash on delivery available at your doorstep.
         </p>
       </div>
       <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -399,6 +401,7 @@ function Confirmation({ contact, orderNumber }: { contact: ContactForm; orderNum
 /* ── Main Checkout page ───────────────────────────────────────── */
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
+  const { threshold: freeThresholdMain, cost: shipCostMain } = useShippingConfig();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('contact');
   const [contact, setContact] = useState<ContactForm>({ name: '', phone: '', email: '' });
@@ -424,7 +427,7 @@ export default function CheckoutPage() {
     const fullAddress = [shipping.street, shipping.area, shipping.city, shipping.postcode].filter(Boolean).join(', ');
 
     const orderDate = new Date().toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' });
-    const shippingCost = subtotal >= getFreeShippingThreshold() ? 0 : getShippingCost();
+    const shippingCost = subtotal >= freeThresholdMain ? 0 : shipCostMain;
     const discount = appliedCoupon
       ? appliedCoupon.type === 'Percentage'
         ? Math.round(subtotal * appliedCoupon.value / 100)
