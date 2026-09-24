@@ -1,0 +1,221 @@
+ Remove-Item -Recurse -Force .git
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> git init
+Initialized empty Git repository in C:/Users/sunny/OneDrive/Desktop/Starkbuy/.git/
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> git remote add origin https://github.com/starkbuypk/Starkbuy.git
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> git add .
+warning: in the working copy of '.figma/make/analyze-routes', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/deploy', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/deploy-preview', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/dev', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/dev.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/format', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/install', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/langserver', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/site.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitattributes', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/workflows/deploy.yml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.mise.toml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'AGENTS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pnpm-lock.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/.htaccess', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/ai-catalog.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/favicon.svg', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/llms.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/robots.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/sitemap.xml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/App.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/BackToTop.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/ProductCard.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/StarkBuyLogo.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/icons/Icons.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/AnnouncementBar.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/CartDrawer.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/Footer.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/Header.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/Layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/MobileBottomTabs.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/SearchOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/WhatsAppFAB.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/config.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/context/AuthContext.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/context/CartContext.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/context/WishlistContext.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/data/products.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/data/slides.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/hooks/useSEO.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/hooks/useStoreData.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/imports/pasted_text/starkbuy-audit.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/index.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/supabase.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/AccountPage.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/Admin.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/CheckoutPage.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/Collections.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/Home.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/LoginPage.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/ProductDetail.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/stubs.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/adminStore.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/recentlyViewed.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/reviews.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/supabaseStore.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/toast.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/vite-env.d.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase-setup.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/functions/server/index.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/functions/server/index.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/functions/server/kv_store.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/functions/server/kv_store.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'vite.config.ts', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> git commit -m "StarkBuy production deploy"
+[master (root-commit) dfb33c2] StarkBuy production deploy
+ 124 files changed, 12452 insertions(+)
+ create mode 100644 .figma/make/analyze-routes
+ create mode 100644 .figma/make/deploy
+ create mode 100644 .figma/make/deploy-preview
+ create mode 100644 .figma/make/dev
+ create mode 100644 .figma/make/dev.json
+ create mode 100644 .figma/make/format
+ create mode 100644 .figma/make/install
+ create mode 100644 .figma/make/langserver
+ create mode 100644 .figma/make/site.json
+ create mode 100644 .gitattributes
+ create mode 100644 .github/workflows/deploy.yml
+ create mode 100644 .gitignore
+ create mode 100644 .mise.toml
+ create mode 100644 AGENTS.md
+ create mode 100644 CLAUDE.md
+ create mode 100644 index.html
+ create mode 100644 package.json
+ create mode 100644 pnpm-lock.yaml
+ create mode 100644 public/.htaccess
+ create mode 100644 public/ai-catalog.json
+ create mode 100644 public/favicon.svg
+ create mode 100644 public/google96058d71e246d32a.html
+ create mode 100644 public/llms.txt
+ create mode 100644 public/robots.txt
+ create mode 100644 public/sitemap.xml
+ create mode 100644 src/App.tsx
+ create mode 100644 src/assets/admin-ref.png
+ create mode 100644 src/assets/attach1
+ create mode 100644 src/assets/attach2
+ create mode 100644 src/assets/attach3
+ create mode 100644 src/assets/attach4
+ create mode 100644 src/assets/attach5
+ create mode 100644 src/assets/attach6
+ create mode 100644 src/assets/attach7
+ create mode 100644 src/assets/attach8
+ create mode 100644 src/assets/attach9
+ create mode 100644 src/components/BackToTop.tsx
+ create mode 100644 src/components/ProductCard.tsx
+ create mode 100644 src/components/StarkBuyLogo.tsx
+ create mode 100644 src/components/icons/Icons.tsx
+ create mode 100644 src/components/layout/AnnouncementBar.tsx
+ create mode 100644 src/components/layout/CartDrawer.tsx
+ create mode 100644 src/components/layout/Footer.tsx
+ create mode 100644 src/components/layout/Header.tsx
+ create mode 100644 src/components/layout/Layout.tsx
+ create mode 100644 src/components/layout/MobileBottomTabs.tsx
+ create mode 100644 src/components/layout/SearchOverlay.tsx
+ create mode 100644 src/components/layout/WhatsAppFAB.tsx
+ create mode 100644 src/config.ts
+ create mode 100644 src/context/AuthContext.tsx
+ create mode 100644 src/context/CartContext.tsx
+ create mode 100644 src/context/WishlistContext.tsx
+ create mode 100644 src/data/products.ts
+ create mode 100644 src/data/slides.ts
+ create mode 100644 src/hooks/useSEO.ts
+ create mode 100644 src/hooks/useStoreData.ts
+ create mode 100644 src/imports/Luxury_Watches_Website_Design___Premium_eCommerce_Website___Modern_UI_UX_Inspiration-1.jpg
+ create mode 100644 src/imports/Luxury_Watches_Website_Design___Premium_eCommerce_Website___Modern_UI_UX_Inspiration.jpg
+ create mode 100644 src/imports/image-1.png
+ create mode 100644 src/imports/image-10.png
+ create mode 100644 src/imports/image-11.png
+ create mode 100644 src/imports/image-12.png
+ create mode 100644 src/imports/image-13.png
+ create mode 100644 src/imports/image-14.png
+ create mode 100644 src/imports/image-15.png
+ create mode 100644 src/imports/image-16.png
+ create mode 100644 src/imports/image-17.png
+ create mode 100644 src/imports/image-18.png
+ create mode 100644 src/imports/image-19.png
+ create mode 100644 src/imports/image-2.png
+ create mode 100644 src/imports/image-20.png
+ create mode 100644 src/imports/image-21.png
+ create mode 100644 src/imports/image-22.png
+ create mode 100644 src/imports/image-23.png
+ create mode 100644 src/imports/image-24.png
+ create mode 100644 src/imports/image-25.png
+ create mode 100644 src/imports/image-26.png
+ create mode 100644 src/imports/image-27.png
+ create mode 100644 src/imports/image-28.png
+ create mode 100644 src/imports/image-3.png
+ create mode 100644 src/imports/image-4.png
+ create mode 100644 src/imports/image-5.png
+ create mode 100644 src/imports/image-6.png
+ create mode 100644 src/imports/image-7.png
+ create mode 100644 src/imports/image-8.png
+ create mode 100644 src/imports/image-9.png
+ create mode 100644 src/imports/image.png
+ create mode 100644 src/imports/pasted_text/pre-deployment-audit.md
+ create mode 100644 src/imports/pasted_text/starkbuy-audit.md
+ create mode 100644 src/imports/pasted_text/ui-ux-audit-refinement.md
+ create mode 100644 src/index.css
+ create mode 100644 src/lib/supabase.ts
+ create mode 100644 src/main.tsx
+ create mode 100644 src/pages/AccountPage.tsx
+ create mode 100644 src/pages/Admin.tsx
+ create mode 100644 src/pages/CheckoutPage.tsx
+ create mode 100644 src/pages/Collections.tsx
+ create mode 100644 src/pages/Home.tsx
+ create mode 100644 src/pages/LoginPage.tsx
+ create mode 100644 src/pages/ProductDetail.tsx
+ create mode 100644 src/pages/stubs.tsx
+ create mode 100644 src/utils/adminStore.ts
+ create mode 100644 src/utils/recentlyViewed.ts
+ create mode 100644 src/utils/reviews.ts
+ create mode 100644 src/utils/supabaseStore.ts
+ create mode 100644 src/utils/toast.ts
+ create mode 100644 src/vite-env.d.ts
+ create mode 100644 supabase-setup.sql
+ create mode 100644 supabase/.temp/cli-latest
+ create mode 100644 supabase/.temp/gotrue-version
+ create mode 100644 supabase/.temp/linked-project.json
+ create mode 100644 supabase/.temp/pooler-url
+ create mode 100644 supabase/.temp/postgres-version
+ create mode 100644 supabase/.temp/project-ref
+ create mode 100644 supabase/.temp/rest-version
+ create mode 100644 supabase/.temp/storage-migration
+ create mode 100644 supabase/.temp/storage-version
+ create mode 100644 supabase/functions/server/index.ts
+ create mode 100644 supabase/functions/server/index.tsx
+ create mode 100644 supabase/functions/server/kv_store.ts
+ create mode 100644 supabase/functions/server/kv_store.tsx
+ create mode 100644 supabase/functions/server/supabase/.temp/linked-project.json
+ create mode 100644 tsconfig.json
+ create mode 100644 vite.config.ts
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> git branch -M main
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> git push origin main --force
+Uploading LFS objects: 100% (31/31), 7.3 MB | 0 B/s, done.
+Enumerating objects: 141, done.
+Counting objects: 100% (141/141), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (123/123), done.
+Writing objects: 100% (141/141), 222.88 KiB | 1.50 MiB/s, done.
+Total 141 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), done.
+To https://github.com/starkbuypk/Starkbuy.git
+ + 534c461...dfb33c2 main -> main (forced update)
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> npx supabase functions deploy server --project-ref yfgxtattyuoovrriirtf
+WARNING: Docker is not running
+Uploading asset (server): supabase/functions/server/index.ts
+Uploading asset (server): supabase/functions/server/kv_store.tsx
+Deployed Functions on project yfgxtattyuoovrriirtf: server
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/yfgxtattyuoovrriirtf/functions
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy>

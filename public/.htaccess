@@ -1,0 +1,62 @@
+# ── React SPA routing ─────────────────────────────────────────────
+Options -Indexes -MultiViews
+RewriteEngine On
+RewriteBase /
+
+# Serve existing files/dirs as-is
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+# Route everything else to index.html (client-side router handles it)
+RewriteRule ^ index.html [QSA,L]
+
+# ── Security headers ──────────────────────────────────────────────
+<IfModule mod_headers.c>
+  # Prevent MIME-type sniffing
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Deny framing (clickjacking protection)
+  Header always set X-Frame-Options "DENY"
+
+  # Enable XSS filter in legacy browsers
+  Header always set X-XSS-Protection "1; mode=block"
+
+  # Control referrer information
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Permissions Policy — restrict sensitive browser APIs
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+
+  # Content Security Policy
+  # Allows: self, Supabase (REST + realtime + Edge Functions), Google Fonts, Unsplash images
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com https://*.unsplash.com https://*.supabase.co https://lh3.googleusercontent.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+
+  # HSTS — force HTTPS for 1 year (enable only after confirming HTTPS works on Hostinger)
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# ── Block access to build/config artefacts ────────────────────────
+<FilesMatch "(\.env.*|\.gitignore|package\.json|package-lock\.json|yarn\.lock|pnpm-lock\.yaml|tsconfig.*\.json)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# ── Disable server signature ──────────────────────────────────────
+ServerSignature Off
+
+# ── Cache static assets aggressively (Vite hashes filenames) ─────
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html                "access plus 0 seconds"
+  ExpiresByType application/javascript   "access plus 1 year"
+  ExpiresByType text/css                 "access plus 1 year"
+  ExpiresByType image/png                "access plus 1 year"
+  ExpiresByType image/jpeg               "access plus 1 year"
+  ExpiresByType image/webp               "access plus 1 year"
+  ExpiresByType image/svg+xml            "access plus 1 year"
+  ExpiresByType font/woff2               "access plus 1 year"
+</IfModule>
+
+# ── Gzip compression ──────────────────────────────────────────────
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json font/woff2
+</IfModule>

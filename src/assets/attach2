@@ -1,0 +1,316 @@
+# LUNA — LUXURY WATCH BRAND E-COMMERCE STORE
+### Master Build Prompt for Figma AI / Code-Generation AI
+*Authored from a senior prompt-engineering perspective (23+ yrs). Single, self-contained, production-grade brief.*
+
+> ⚠️ **HOW TO USE THIS PROMPT**
+> Paste the full content below into Figma AI. Because Figma AI has a finite context window and cannot emit a 24-route production app in one shot, **generate in batches**: ask it to build the **Design System + Layout shell + Home page first**, then generate each subsequent route/page as its own component in follow-up prompts ("Now build the `/product/:slug` PDP page using the same design system and Supabase data layer defined in the master brief above."). The master brief below is the shared contract every batch references.
+>
+> Replace every `[BRACKETED]` placeholder before starting. Do not split the brief itself.
+
+---
+
+## 0. ROLE & MISSION
+
+You are a principal full-stack engineer + senior product designer. Build a **complete, production-ready, multi-page luxury e-commerce store** for a **watches brand** targeting the **Pakistani market** (COD-first, with a strong prepaid conversion push via a **10% instant prepaid discount**), to be hosted on **Hostinger**.
+
+This is **NOT a single-page scrolling site.** It is a **multi-page application** with **client-side routing** (React Router 6+ or Next.js App Router) — every section below is a **distinct route with its own unique URL**, code-split (lazy-loaded) so each page ships its own JS chunk. The benchmark it must match in polish, flows, and feature depth is a "premium dark storefront" — replicate that benchmark 1:1; the only domain change is the product class (watches) and the color theme (LUNA, below).
+
+Every button must work. Every flow must finish. Content must actually render. No placeholders, no stubs, no "coming soon".
+
+---
+
+## 0.5 ⛔ ZERO "AI-VIBE" — HUMAN-CRAFT DIRECTIVE (read first, obey always)
+
+The output must read as **hand-crafted by a senior design studio**, not as AI-generated. A typical AI-generated site is instantly recognizable — eliminate every one of those tells. If any of the following appears, it is a bug and must be fixed:
+
+**BANNED — the "AI-vibe" checklist (never do these):**
+- No purple/indigo/violet gradients, no rainbow mesh backgrounds, no aurora blobs. The LUNA navy radial is restrained and subtle (see §2) — not a flashy gradient.
+- No gradient-filled text headlines, no "shiny" gradient buttons.
+- No emoji as feature icons. No lucide outline icons floating in colored circles as the default "feature card" pattern.
+- No generic 3-up "feature card with icon + title + one line" grids everywhere.
+- No centered hero with a giant gradient headline + two stacked buttons + scroll-down arrow — that is the #1 AI tell.
+- No `rounded-2xl` / `rounded-3xl` on everything (pick one radius system; ours is `0.75rem` — use it consistently, mix square edges on data/tables/media).
+- No over-used glassmorphism on every card (glass only for overlays: drawer, search, mobile sheet).
+- No animated count-up stats, no auto-rotating testimonials with fade, no "🚀 Built with AI" / "Powered by AI" / "Generated with" badges.
+- No Lorem Ipsum, no "Click here", no "Learn more" as link text, no marketing-speak filler ("supercharge your experience", "seamlessly revolutionize").
+- No drop shadows on every element. Shadows are earned and intentional (CTA glow, elevated cards only).
+- No animating everything on scroll. Motion is rare and purposeful.
+- No inconsistent spacing (the 8px grid is law — every padding/margin is a multiple of 4 or 8).
+- No generic AI copy tone (over-enthusiastic, adjective-heavy, exclamation marks). Copy is calm, confident, specific, in the brand voice.
+
+**REQUIRED — human-craft tells (always do these):**
+- **Editorial, asymmetrical layouts** on the home and category pages — full-bleed hero, off-grid editorial blocks, intentional negative space. Luxury feels quiet, not crowded.
+- **Real typographic hierarchy** — one display serif for wordmark/headings, one sans (Inter) for body; clear scale (not all 4xl); uppercase eyebrows with 0.2em tracking; tabular-nums on every price.
+- **Considered micro-interactions** — hover scale 1.02 only on real CTAs, a single ambient glow on product cards, subtle 150ms easing. Nothing more.
+- **Restraint in color** — luminous blue (`#A7EBF2`) is used sparingly as an accent, never as large color blocks. Most of the canvas is the deep navy. Luxury = dark + quiet + one sharp accent.
+- **Real product framing** — watches shot on a consistent dark backdrop, consistent aspect (3:4), generous padding inside the frame; the grid rhythm reads like a lookbook, not a thumbnail wall.
+- **Custom, minimal iconography** — a small set of thin-line icons drawn for this brand (search, bag, account, wishlist, arrows, chevrons), 1.5px stroke, consistent weight. Not a generic icon library dump.
+- **Specific, confident microcopy** — "Cash on delivery at your doorstep", "Pay now, save 10%", "Engineered in 316L steel", real shipping times, real return windows. Never vague.
+- **Real states** — loading skeletons (shimmer, not spinners-everywhere), real empty states with a clear next action, real error messages, real disabled states.
+- **Edge cases handled** — out-of-stock shows "Sold out" overlay not a hidden card; long titles wrap gracefully; prices align; badges never overlap content.
+- **Consistency is the craft** — same border treatment, same button heights, same card padding, same focus-ring style across the entire app. Inconsistency is the loudest AI tell after the gradient hero.
+- **No "demo" energy** — there is no admin teaser, no sample data that reads as fake, no placeholder products. The catalog, copy, and flows feel like a live store.
+
+**Golden rule:** a senior designer reviewing the live site for 60 seconds should not suspect AI. When in doubt, remove, simplify, and quiet it down. Restraint reads as human; abundance reads as AI.
+
+---
+
+## 1. BRAND, IDENTITY & PLACEHOLDERS (fill before generating)
+
+- ***Brand name:** `StarkBuy`
+- **Tagline:** `` 
+- **Logo:** `[LOGO_URL]` — used in header, footer, favicon, invoice, OG image. Provide a transparent PNG/SVG URL.
+- **Domain (Hostinger):** `www.starkbuypk.com`
+- **WhatsApp concierge number:** `+923235901200`
+- **Support email:** `starkbuypk@gmail.com`
+- **Admin email (alerts):** `sunnyzahid333@gmail.com`
+- **Currency:** PKR default (PKR)
+
+
+
+> Wherever the brand name, logo, or domain appears in code, config, SEO, or email — always read it from these placeholders / a central config so the owner can swap them without editing pages.
+
+---
+
+## 2. DESIGN SYSTEM — "LUNA" (enforce strictly, from tokens)
+
+Luxury, nocturnal, premium. Deep navy radial-gradient canvas, luminous-blue accents, refined serif display type.
+
+**Color tokens (HSL not required — use the exact hex):**
+| Token | Hex | Usage |
+|---|---|---|
+| `--luna-1` (luminary) | `#A7EBF2` | Primary accent — CTAs, links, active states, highlights, focus rings |
+| `--luna-2` (steel) | `#54ACBF` | Secondary accent — badges, secondary buttons, borders on hover |
+| `--luna-3` (classic) | `#26658C` | Tertiary accent — charts, loyalty tiers, depth accents |
+| `--luna-4` (rich navy) | `#023859` | Elevated surfaces — cards, drawers, sidebar, inputs |
+| `--luna-5` (midnight) | `#011C40` | Base background — deepest layer |
+| `--bg-gradient` | radial-gradient `#011C40` → `#023859` (lighter center → darker edges) | Page background — a subtle radial luminosity, like moonlight |
+| foreground text | `#EAF6F9` | Body + headings |
+| muted text | `#8FB3C4` | Secondary copy, labels |
+
+- **Background:** the `--bg-gradient` radial (lighter luminous navy at center fading to midnight at edges) sits behind every page; surfaces (`--luna-4`) float on it with soft shadows.
+- **Typography:** Display/Headings — a **refined serif** (e.g., `Cormorant Garamond` / `Playfair Display`, 600/700, -0.02em tracking) for the luxury wordmark, hero titles, section headings. Body + all prices — `Inter` (400/500) with **`tabular-nums`** for every price/number. Uppercase eyebrow labels in a small sans-serif (Inter, 0.2em tracking).
+- **Spatial grid:** 8px base. Radius `0.75rem`.
+- **Motion:** all hover transitions `150ms cubic-bezier(0.16, 1, 0.3, 1)`; large-element transitions `300ms` same easing. Buttons scale `1.02` hover / `0.98` active. Cards: ambient luna-1 glow + deep shadow on hover.
+- **Glassmorphism:** overlays ~85% opacity `--luna-4` + `backdrop-blur(14px)` + `1px inset rgba(167,235,242,0.08)`.
+- **Shadows:** `elevate: 0 24px 60px -20px rgba(1,28,64,0.8)`; `glow-luna: 0 0 0 1px rgba(167,235,242,0.4), 0 8px 40px -8px rgba(167,235,242,0.45)`.
+- **Selection:** `rgba(167,235,242,0.3)` on dark text.
+- **Scrollbars:** thin 6px, `#023859` thumb, transparent track.
+
+Every color/spacing must come from CSS design tokens (`:root` + `.dark`) mapped to Tailwind classes. **No hardcoded hex in JSX.** The LUNA gradient must be the global page background on every route.
+
+---
+
+## 3. PRODUCT MODEL FOR WATCHES
+
+- **Categories:** Analog, Chronograph, Smart, Luxury, Sports, Sale
+- **Gender:** Men, Women, Unisex
+- **Variants (replaces clothing sizes):** `caseSize` (38 / 40 / 42 / 44 mm) × `strap` (Leather, Steel Bracelet, Silicone, Mesh).
+- **Stock:** per-variant stock map, global `inStock` flag.
+- **Discount:** `discountPercent` (0–100) → dynamic "% OFF" badge + auto prepaid price = `codPrice × 0.9`.
+- **Flags:** `newArrival`, `featured`, `flashSale`, `limited`, `popularity`, `rating`, `reviewCount`, `unitsSold`.
+- **Media:** `image` (primary), `hoverImage`, `gallery[]` — all served responsive + WebP, lazy-loaded, blur-up placeholder, focal-point crop.
+- **Identity:** url-safe `slug` as product id; SKU format configurable.
+
+A watch PDP shows: gallery, case-size selector, strap selector, price + prepaid discount callout, discount badge, stock status, Add to Cart + Buy Now, accordions (Description, Movement & Specs, Shipping & Returns, Warranty), reviews, related products, sticky mobile buy bar, Product + Breadcrumb JSON-LD.
+
+---
+
+## 4. ARCHITECTURE — MULTI-PAGE APP + SUPABASE BACKEND
+
+### 4.1 Frontend — Multi-Page with Client-Side Routing
+- **React 18 + Vite + React Router 6** (or Next.js App Router). Every page is a **separate route with a unique URL** and is **lazy-loaded** (code-split per route).
+- Route-level `<Suspense>` fallbacks; global spinner only during auth/settings bootstrap.
+- Layout shell (header + footer + overlays + mobile tabs) wraps routes via an `<Outlet/>` layout route; auth routes nest under a `ProtectedRoute`; admin routes nest under an `AdminRoute`.
+- Scroll-to-top on route change.
+
+### 4.2 Backend — Supabase (use for ALL data, auth, storage, realtime, server logic)
+- **Auth:** Supabase Auth. Email/password + Google OAuth (Supabase provider). Apple NOT required. OTP email verification on signup. Password reset via Supabase recovery email. Roles via a custom `role` column on the `users`/`profiles` table (`admin` / `user`).
+- **Database:** PostgreSQL. Tables mirror the entities in §6. Use **Supabase RLS policies** for every table (see §8 security). Always go through the Supabase client / server functions — never expose service-role keys to the browser.
+- **Storage:** Supabase Storage buckets for product images, hero media, blog covers, logos — public read bucket for storefront media; signed URLs for private files (invoices, exports).
+- **Realtime:** Supabase Realtime subscriptions so admin edits (price, stock, new product, status change) reflect on the storefront instantly without reload.
+- **Server logic:** Supabase Edge Functions (Deno) for anything that must run server-side and must NOT trust the client:
+  - `create-order` — validate cart vs live inventory, compute totals, reserve stock, write order + items, idempotency key.
+  - `checkout-quote` — coupon validation, shipping calc, tax, returns line totals.
+  - `loyalty-*` (award / earn / redeem / account) — points ledger with atomic balance updates.
+  - `track-order` — lookup by order number + identifier, IP rate-limited.
+  - `storefront-settings` — public-safe read of store config.
+- **Email:** Resend (via Edge Function) for transactional email; Supabase Auth for auth emails. Optional SMS OTP integration hook.
+- Cart + wishlist state persisted in `localStorage` (sanitized on load); checkout writes to Supabase via Edge Functions.
+
+---
+
+## 5. PAGES & ROUTES (build all — each its own URL + component)
+
+**Public storefront (multi-page):**
+1. `/` **Home** — full-bleed hero slider (autoplay + touch swipe/drag gestures, same style as the benchmark), promo tiles, offer banner, featured/new-arrivals grid, USP/feature strip, dual promo banners, testimonial, Organization + WebSite JSON-LD.
+2. `/collections`, `/collections/:gender`, `/collections/:category` **PLP** — URL-synced filters (gender, category, case size, strap, price range, in-stock), sort (featured/price asc/price desc/newest/popular), pagination, responsive grid (2→3→4 cols), desktop filter sidebar + mobile bottom-sheet filters, active-filter bar, empty state, breadcrumbs, category strip (All, Analog, Chronograph, Smart, Sports, Sale), ItemList JSON-LD.
+3. `/product/:slug` **PDP** — image gallery (sticky desktop), breadcrumb, title, rating, price + prepaid discount callout, case-size + strap selectors, quantity, Add to Cart + Buy Now, accordions, reviews, related products, sticky mobile buy bar, Product + Breadcrumb JSON-LD.
+4. `/checkout` **multi-step Checkout** — Contact → Shipping → Review & Payment (COD vs prepaid; show 10% prepaid discount) → Confirmation. Idempotent, coupon input, live order summary, guest checkout.
+5. `/account` **Account** (auth-gated) — order history, address book, loyalty overview, privacy center.
+6. `/track-order` **Track Order** — order number + phone/email → status timeline.
+7. `/wishlist` **Wishlist** — saved grid, add-to-cart.
+8. `/about`, `/blog`, `/blog/:slug`, `/support/contact-us`, `/support/exchange-policy`, `/support/size-guide` (case/strap guide), `/support/payment-methods`, `/legal/privacy-policy`, `/legal/terms-of-service`.
+
+**Auth (multi-page, all with unique URLs):**
+9. `/login` — email+password (show/hide toggle), Google OAuth full-width, forgot link, guest access; honors `returnTo`.
+10. `/register` — email+password+confirm, full name, Google; **multi-step: register → OTP (120s countdown, resend disabled during countdown) → verify → redirect**. Never auto-login an unverified user.
+11. `/forgot-password` — email → generic success (never reveal if email exists).
+12. `/reset-password` — `?token=` + new password+confirm → redirect to login.
+
+**Admin (role-gated `/admin`):**
+13. **Dashboard** — responsive sidebar + mobile tabs: Analytics, Products (CRUD + image upload + per-variant inventory editor + discount% + flags), Orders (list + status flow + fulfillment + stock commit/release), Abandoned Cart Recovery, Discounts/Coupons, Customers, Loyalty (config + accounts + transactions + rewards + redemptions), Content (hero slides drag-order editor, homepage panels), Blog/Journal (CRUD + publish toggle), Audit Log, Settings (general, payment, shipping zones, tax, inventory, currency, SEO, invoice, security, integrations, maintenance).
+
+---
+
+## 6. DATA MODEL (Supabase Postgres tables)
+
+- `profiles` (extends Supabase auth users): `id`, `full_name`, `role` (admin/user), `created_date`.
+- `products`: name, slug, description, tags, gender, category, movement, case_size_options, strap_options, cod_price, discount_percent, image, hover_image, gallery, colors, stock (jsonb), in_stock, is_new, featured, flash_sale, limited, popularity, rating, review_count, units_sold.
+- `orders`: order_number, customer_user_id, customer_name, customer_email, customer_phone, shipping_address (jsonb), items_snapshot (jsonb), subtotal, coupon_code, coupon_discount, shipping_amount, tax_amount, total, currency, payment_method (cod/bank_transfer/jazzcash/easypaisa), payment_status, order_status, stock_status, idempotency_key, carrier, tracking_number, status_history (jsonb).
+- `order_items`: order_id, customer_user_id, product_id, product_name, slug, image, case_size, strap, quantity, unit_price, line_total.
+- `addresses`: user_id, label, full_name, phone, street, area, city, postcode, is_default.
+- `reviews`: product_id, customer_name, rating(1–5), title, body, verified, review_date.
+- `discounts`: code, type (percentage/fixed), value, minimum_order, usage_limit, used_count, starts_at, ends_at, active.
+- `loyalty_accounts`, `loyalty_transactions`, `loyalty_config`, `rewards`, `reward_redemptions`.
+- `blog_posts`: title, slug, tag, body, cover_image, read_time, published.
+- `hero_slides`: eyebrow, title, cta_text, cta_link, media, media_type, order.
+- `home_content`: promo_tiles, offer_banner, dual_banners, testimonial (jsonb).
+- `store_settings`: single row — general, payment, shipping, tax, inventory, currency, seo, invoice, security, integrations, maintenance.
+- `audit_logs`: actor_email, action, entity_type, entity_id, details, created_date.
+- `track_lookup_attempts`: ip_hash, attempted_at, success (rate limiting).
+
+---
+
+## 7. SHARED UI / OVERLAYS (build once, reuse on every route)
+
+- **Sticky header** — logo, desktop nav (Home, Shop, About, Blog, Contact), search, account, wishlist (desktop), cart (count badge + bump animation), currency switcher. Mobile: hamburger-left, brand-center, icons-right.
+- **Cart drawer** — right glassmorphism, tabular-nums prices, qty steppers, remove, coupon, subtotal, checkout CTA; closes on route change.
+- **Search overlay** — full-screen, instant in-memory product search.
+- **WhatsApp concierge FAB** — persistent, bottom-right, safe-area offset.
+- **Mobile bottom tabs** — Home, Shop, Wishlist, Account; safe-area bottom padding; wishlist badge.
+- **Announcement bar** — top, dismissible, prepaid-discount promo.
+- **Footer** — link columns (Shop, Support, Legal, Brand), payment badges, newsletter, social.
+- **Toasts** — top-right, auto-dismiss 4s. **Cards fire toasts via a standalone function (not a per-card hook)** so one "added to cart" never re-renders the whole grid.
+
+---
+
+## 8. SECURITY FEATURES (implement all, non-negotiable)
+
+- **Supabase Row-Level Security on EVERY table**:
+  - Public read: products, reviews, blog_posts (published), hero_slides, rewards, loyalty_config, store_settings (public fields only), home_content.
+  - Owner-or-admin read: orders, order_items, addresses, loyalty_accounts, loyalty_transactions, reward_redemptions (`customer_user_id` / `user_id` = `auth.uid()` OR `role = admin`).
+  - Owner write: addresses (own only).
+  - Admin-only create/update/delete: products, orders, discounts, blog, hero, home_content, store_settings, audit_logs, loyalty (manual adjust).
+- **Auth security:** OTP email verification before login; password reset via Supabase recovery (generic success, no email enumeration); optional 2FA; session timeout configurable; role checks server-side via Edge Functions (never trust client role for writes).
+- **Server-side trust boundary:** all order creation, payment, stock reservation, coupon validation, loyalty mutations run in **Supabase Edge Functions** with the service role key — the browser never performs privileged writes.
+- **Idempotency:** orders require an idempotency key to prevent double-submit / double-charge.
+- **Inventory atomicity:** stock reservation uses atomic DB transactions (decrement with `WHERE stock >= qty`); no oversell.
+- **Rate limiting:** order track-lookup by hashed IP (max N/10min); auth + OTP endpoints rate-limited (prevent brute-force / OTP spam).
+- **Input validation & sanitization:** server-side Zod/schema validation on every mutation; HTML-escape all user content (reviews, addresses); CSP-safe rendering; no raw `dangerouslySetInnerHTML` on user input.
+- **Secrets:** all keys (Resend, Google OAuth, payment keys) in Supabase secrets / Edge Function env — never committed, never sent to the browser.
+- **HTTPS / headers:** force HTTPS; security headers — `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`.
+- **Audit logging:** every admin create/update/delete writes to `audit_logs` (actor, action, entity, id, details, timestamp).
+- **Abuse prevention:** coupon `used_count` increments atomically; abandoned-cart emails screened + rate-limited; newsletter/opt-in only.
+- **GDPR-ish:** privacy center (delete account, export data); terms + privacy pages.
+- **Maintenance mode:** admin-toggleable; shows a branded maintenance page to non-admins.
+
+---
+
+## 9. MOBILE-FIRST RESPONSIVE (critical — primary viewport is 360–619px)
+
+- Design/test at 360–619px first, then up to desktop.
+- `viewport-fit=cover` + `env(safe-area-inset-*)` on all fixed overlays (header, tabs, FAB, drawer).
+- `overscroll-behavior: none` globally — no viewport bounce.
+- `user-select: none` on touch controls; `-webkit-tap-highlight-color: transparent`.
+- All tappable targets ≥ 44px min height on mobile.
+- Bottom tabs + FAB stack with safe-area offsets; content has bottom padding so nothing hides behind tabs.
+- Hero slider supports touch swipe/drag.
+- Drawers/filter sheets slide up on mobile; sidebar collapses to a sheet.
+- No horizontal overflow at any breakpoint; grids reflow 2→3→4 columns.
+- Images lazy-loaded + responsive srcset (WebP) to keep mobile data light.
+
+---
+
+## 10. PERFORMANCE REQUIREMENTS
+
+- Lazy-load every route (code-split).
+- Product cards must NOT subscribe to global UI state they don't render — fire toasts via a standalone function so one add-to-cart doesn't re-render every visible card.
+- Client-side filtering/sorting instant (in-memory on loaded catalog) — **never artificial loading delays on filter changes**; skeletons only for initial data load.
+- Memoize derived lists, cart totals, context values; stable context object references.
+- Supabase Realtime syncs admin edits to storefront (no manual reload).
+- Defer heavy below-the-fold media.
+- Target: Lighthouse-mobile Performance ≥ 90, Accessibility ≥ 95 on Home + PLP.
+
+---
+
+## 11. SEO & STRUCTURED DATA
+
+- Per-page meta title/description/OG image via an SEO hook; canonical URLs = Hostinger domain.
+- JSON-LD: Organization, WebSite (+ SearchAction), Product (+ Offer/AggregateRating), BreadcrumbList, ItemList on collection.
+- `robots.txt`, `sitemap.xml`, `llms.txt`, `agents.json` for AI crawlers.
+- Breadcrumbs visible + structured; semantic HTML; alt text; heading hierarchy.
+
+---
+
+## 12. AUTHENTICATION FLOWS (precise)
+
+- Login: email+password (show/hide), Google OAuth full-width, forgot link, guest access. Post-login redirect honors a `returnTo` query param (fallback `/`).
+- Register: multi-step — `register → OTP (120s countdown, resend disabled during countdown) → verifyOtp → redirect`. **Never auto-login an unverified user.**
+- Forgot: `resetPasswordRequest(email)` → always generic success.
+- Reset: `?token=` + new password+confirm → redirect to login.
+- All auth calls wrapped in try/catch with inline errors; submit disabled while in-flight (except forgot, which always shows generic success).
+
+---
+
+## 13. HOSTINGER DEPLOYMENT
+
+- Build command produces a `dist/` SPA folder; deploy `dist/` to Hostinger (File Manager or Git deploy).
+- **SPA fallback:** add `.htaccess` in `dist/`:
+  ```
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+  ```
+  (so React Router deep links like `/product/slug` don't 404 on refresh).
+- Supabase project URL + anon key in build env (safe for browser); service role key ONLY in Edge Functions.
+- Google OAuth redirect URIs → `https://yourdomain.com`.
+- Canonical, sitemap, OG image → Hostinger domain.
+
+---
+
+## 14. ACCEPTANCE CRITERIA
+
+- All 24+ routes render real content; every CTA completes its flow.
+- Multi-page feel: each page has a unique URL, scrolls independently, code-split.
+- Filters/sort/pagination instant; no artificial delays.
+- Add-to-cart updates drawer + badge + toast without re-rendering the whole grid.
+- LUNA radial gradient background + luminous-blue accents consistent on every route.
+- Mobile: no bounce, no overflow, safe-area respected, 44px targets, tabs + FAB offset.
+- Supabase Auth + RLS + Edge Functions secure every write; no privileged client writes.
+- Admin CRUD for watches, orders, coupons, content, loyalty persists and reflects live.
+- COD checkout reserves stock atomically; prepaid path shows 10% discount.
+- Lighthouse-mobile ≥ 90 perf / 95 a11y on Home + PLP; JSON-LD validates; sitemap reachable; security headers present.
+
+---
+
+## 15. WHAT TO CUSTOMIZE PER BRAND (before generating)
+**Brand name:** `StarkBuy`
+- **Tagline:** `` 
+- **Logo:** `[LOGO_URL]` — used in header, footer, favicon, invoice, OG image. Provide a transparent PNG/SVG URL.
+- **Domain (Hostinger):** `www.starkbuypk.com`
+- **WhatsApp concierge number:** `+923235901200`
+- **Support email:** `starkbuypk@gmail.com`
+- **Admin email (alerts):** `sunnyzahid333@gmail.com`
+- **Currency:** PKR default (PKR)
+
+
+Everything else — structure, polish, flows, admin, responsive rules, performance rules, security rules, LUNA theme — stays identical to this brief.
+
+---
+
+END OF MASTER BRIEF.
+Generate in batches: **(1) Design System + Layout shell + Home page** first, then each remaining route as its own component referencing this brief.

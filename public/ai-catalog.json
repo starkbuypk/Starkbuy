@@ -1,0 +1,25 @@
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Starkbuy Pakistan",
+  "url": "https://www.starkbuypk.com",
+  "description": "Premium online watch store in Pakistan offering luxury timepieces for men and women with nationwide delivery.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Starkbuy",
+    "url": "https://www.starkbuypk.com",
+    "logo": "https://www.starkbuypk.com/favicon.svg",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+92-323-5901200",
+      "contactType": "customer service",
+      "availableLanguage": ["English", "Urdu"]
+    }
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://www.starkbuypk.com/collections?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}

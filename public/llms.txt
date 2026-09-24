@@ -1,0 +1,24 @@
+# Starkbuy Pakistan
+
+Starkbuy is a premium online watch store based in Pakistan, offering luxury and high-quality timepieces for men and women with nationwide delivery.
+
+## About
+
+Starkbuy provides curated collections of analog, chronograph, sports, automatic, and A+ replica watches at competitive prices. All orders include cash on delivery across Pakistan with free shipping on orders above Rs. 2,000.
+
+## Pages
+
+- [Home](https://www.starkbuypk.com/) - Featured collections, new arrivals, and hero showcase
+- [Shop All Watches](https://www.starkbuypk.com/collections) - Full catalog with filters by category, gender, and price
+- [Analog Watches](https://www.starkbuypk.com/collections/analog)
+- [Chronograph Watches](https://www.starkbuypk.com/collections/chronograph)
+- [Sports Watches](https://www.starkbuypk.com/collections/sports)
+- [Automatic Watches](https://www.starkbuypk.com/collections/automatic)
+- [About Us](https://www.starkbuypk.com/about) - Brand story and values
+- [Contact](https://www.starkbuypk.com/contact) - Get in touch via WhatsApp or email
+
+## Contact
+
+- WhatsApp: +92 323 5901200
+- Email: starkbuypk@gmail.com
+- Website: https://www.starkbuypk.com

@@ -1,0 +1,12 @@
+{
+  "title": "StarkBuy — Premium Watches in Pakistan | COD Available",
+  "description": "Shop Analog, Chronograph, Sports & Ladies watches in Pakistan. Cash on delivery, free shipping above Rs. 2,000. Genuine timepieces at the best prices.",
+  "language": "en",
+  "robots": {
+    "index": true
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
