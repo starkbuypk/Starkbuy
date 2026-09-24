@@ -39,6 +39,8 @@ function HeroSlider() {
 
   const slide = slides[current];
 
+  if (slides.length === 0) return null;
+
   return (
     <section
       style={{ position: 'relative', height: 'min(90vh, 720px)', overflow: 'hidden', userSelect: 'none', contain: 'layout paint', willChange: 'auto' }}
@@ -247,7 +249,7 @@ function CategoryStrip() {
             style={{ textDecoration: 'none', borderRadius: 'var(--radius)', overflow: 'hidden', display: 'block', position: 'relative', aspectRatio: '1', background: 'var(--luna-4)' }}
             className="img-card"
           >
-            <img src={cat.img} alt={cat.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.75, transition: 'opacity 250ms, transform 350ms var(--ease-spring)' }} />
+            {cat.img && <img src={cat.img} alt={cat.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.75, transition: 'opacity 250ms, transform 350ms var(--ease-spring)' }} />}
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,22,20,0.82) 0%, transparent 60%)', display: 'flex', alignItems: 'flex-end', padding: '0.875rem' }}>
               <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#FFFFFF' }}>{cat.label}</span>
             </div>

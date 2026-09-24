@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Product } from '../data/products';
-import { getSlides } from '../data/slides';
-import type { HeroSlide } from '../data/slides';
+import { DEFAULT_SLIDES, type HeroSlide } from '../data/slides';
 import {
   type CategoryConfig,
   DEFAULT_CATEGORIES,
@@ -31,15 +30,16 @@ export function useAllProducts(): Product[] {
 }
 
 export function useSlides(): HeroSlide[] {
-  const [slides, setSlides] = useState<HeroSlide[]>(() =>
-    getSlides().filter(s => s.enabled)
-  );
+  const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_SLIDES.filter(s => s.enabled));
 
-  function refresh() {
-    setSlides(getSlides().filter(s => s.enabled));
+  async function refresh() {
+    const fromDb = await dbGetConfig<HeroSlide[]>('slides');
+    const list = fromDb ?? DEFAULT_SLIDES;
+    setSlides(list.filter(s => s.enabled));
   }
 
   useEffect(() => {
+    refresh();
     window.addEventListener(EV_SLIDES, refresh);
     return () => window.removeEventListener(EV_SLIDES, refresh);
   }, []);

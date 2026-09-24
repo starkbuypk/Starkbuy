@@ -290,7 +290,7 @@ function OrderSummary({
             <span style={{ color: 'var(--luna-2)' }}><IconShield size={13} /></span> Secure checkout
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: 'var(--luna-muted)' }}>
-            <span style={{ color: 'var(--luna-2)' }}><IconTruck size={13} /></span> Free above Rs. 2,000
+            <span style={{ color: 'var(--luna-2)' }}><IconTruck size={13} /></span> Free above {BRAND.currencySymbol} {getFreeShippingThreshold().toLocaleString()}
           </div>
         </div>
       </div>
@@ -354,7 +354,7 @@ function ShippingStep({ data, onChange, onNext, onBack, isPlacing }: { data: Shi
       <div style={{ background: 'rgba(26,22,20,0.05)', border: '1px solid rgba(26,22,20,0.09)', borderRadius: 'var(--radius)', padding: '0.875rem 1.25rem', marginBottom: '1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
         <span style={{ color: 'var(--luna-2)', flexShrink: 0, marginTop: '0.125rem' }}><IconTruck size={15} /></span>
         <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--luna-muted)', lineHeight: 1.6 }}>
-          Standard delivery 1–3 working days. Free shipping on orders above {BRAND.currencySymbol} 2,000. Cash on delivery available at your doorstep.
+          Standard delivery 1–3 working days. Free shipping on orders above {BRAND.currencySymbol} {getFreeShippingThreshold().toLocaleString()}. Cash on delivery available at your doorstep.
         </p>
       </div>
       <div style={{ display: 'flex', gap: '0.75rem' }}>

@@ -4,7 +4,7 @@ import { formatPrice } from '../data/products';
 import type { Product, WatchCategory, WatchGender, CaseSize, Strap } from '../data/products';
 import { StarkBuyLogo } from '../components/StarkBuyLogo';
 import { BRAND } from '../config';
-import { getSlides, saveSlides, resetSlides, type HeroSlide } from '../data/slides';
+import { DEFAULT_SLIDES, type HeroSlide } from '../data/slides';
 import {
   getNewArrivalOverrides, setNewArrivalOverrides,
   DEFAULT_CATEGORIES, type CategoryConfig,
@@ -1091,10 +1091,33 @@ function SlideField({ label, value, onChange, multiline }: { label: string; valu
 }
 
 function HeroSlidesPanel() {
-  const [slides, setSlides] = useState<HeroSlide[]>(() => getSlides());
+  const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_SLIDES);
   const [editId, setEditId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState('');
 
-  function persist(next: HeroSlide[]) { setSlides(next); saveSlides(next); dispatch(EV_SLIDES); }
+  useEffect(() => {
+    dbGetConfig<HeroSlide[]>('slides').then(fromDb => {
+      if (fromDb) setSlides(fromDb);
+    });
+  }, []);
+
+  async function persist(next: HeroSlide[]) {
+    setSlides(next);
+    setSaving(true);
+    setSaveMsg('');
+    try {
+      await dbSetConfig('slides', next);
+      dispatch(EV_SLIDES);
+      setSaveMsg('Saved!');
+    } catch {
+      setSaveMsg('Save failed — try again');
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMsg(''), 3000);
+    }
+  }
+
   function toggle(id: string) { persist(slides.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s)); }
   async function remove(id: string) {
     if (!await adminConfirm('Delete this slide? This cannot be undone.')) return;
@@ -1163,9 +1186,13 @@ function HeroSlidesPanel() {
           </div>
         ))}
       </div>
-      <button onClick={() => { resetSlides(); setSlides(getSlides()); setEditId(null); dispatch(EV_SLIDES); }} style={{ padding: '0.5rem 1rem', background: 'transparent', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 'var(--radius)', color: 'rgba(248,113,113,0.8)', fontSize: '0.8125rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-        Reset to defaults
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <button onClick={() => { persist(DEFAULT_SLIDES); setEditId(null); }} style={{ padding: '0.5rem 1rem', background: 'transparent', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 'var(--radius)', color: 'rgba(248,113,113,0.8)', fontSize: '0.8125rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+          Reset to defaults
+        </button>
+        {saving && <span style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)' }}>Saving…</span>}
+        {saveMsg && <span style={{ fontSize: '0.8125rem', color: saveMsg.includes('fail') ? 'rgba(248,113,113,0.9)' : 'rgba(34,197,94,0.9)' }}>{saveMsg}</span>}
+      </div>
     </div>
   );
 }

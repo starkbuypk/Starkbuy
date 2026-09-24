@@ -46,7 +46,3 @@ export function getProductBySlug(slug: string): Product | undefined {
 export function formatPrice(pkr: number): string {
   return `Rs. ${pkr.toLocaleString('en-PK')}`;
 }
-
-export function prepaidPrice(codPrice: number, discountPercent: number = 10): number {
-  return Math.round(codPrice * (1 - discountPercent / 100));
-}
