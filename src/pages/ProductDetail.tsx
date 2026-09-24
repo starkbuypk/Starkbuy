@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 import { recordView } from '../utils/recentlyViewed';
@@ -14,6 +14,89 @@ import { IconChevronRight, IconHeart, IconTruck, IconShield, IconRefresh } from 
 import { getReviews, addReview, hasUserReviewed, type Review } from '../utils/reviews';
 
 /* ── Star picker ──────────────────────────────────────────────── */
+/* ── Lightbox ─────────────────────────────────────────────────── */
+function Lightbox({ items, startIndex, onClose }: {
+  items: { type: 'image' | 'video'; src: string }[];
+  startIndex: number;
+  onClose: () => void;
+}) {
+  const [idx, setIdx] = useState(startIndex);
+  const touchStartX = useRef(0);
+  const imageItems = items.filter(i => i.type === 'image');
+
+  const prev = useCallback(() => setIdx(i => Math.max(0, i - 1)), []);
+  const next = useCallback(() => setIdx(i => Math.min(imageItems.length - 1, i + 1)), [imageItems.length]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') prev();
+      if (e.key === 'ArrowRight') next();
+    }
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose, prev, next]);
+
+  const current = imageItems[idx];
+  if (!current) return null;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)' }}
+      onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
+      onTouchEnd={e => {
+        const dx = e.changedTouches[0].clientX - touchStartX.current;
+        if (dx > 50) prev();
+        else if (dx < -50) next();
+      }}
+    >
+      {/* Close */}
+      <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', fontSize: '1.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>✕</button>
+
+      {/* Counter */}
+      <div style={{ position: 'absolute', top: '1rem', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.6)', fontSize: '0.8125rem', fontFamily: 'DM Sans, sans-serif' }}>
+        {idx + 1} / {imageItems.length}
+      </div>
+
+      {/* Image */}
+      <img
+        src={current.src}
+        alt=""
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '92vw', maxHeight: '88vh', objectFit: 'contain', borderRadius: '0.5rem', userSelect: 'none', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}
+      />
+
+      {/* Prev arrow */}
+      {idx > 0 && (
+        <button onClick={e => { e.stopPropagation(); prev(); }} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      )}
+
+      {/* Next arrow */}
+      {idx < imageItems.length - 1 && (
+        <button onClick={e => { e.stopPropagation(); next(); }} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      )}
+
+      {/* Dot strip */}
+      {imageItems.length > 1 && (
+        <div style={{ position: 'absolute', bottom: '1.25rem', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '0.375rem' }}>
+          {imageItems.map((_, i) => (
+            <button key={i} onClick={e => { e.stopPropagation(); setIdx(i); }} style={{ width: i === idx ? 20 : 6, height: 6, borderRadius: 3, border: 'none', background: i === idx ? '#fff' : 'rgba(255,255,255,0.35)', padding: 0, cursor: 'pointer', transition: 'width 200ms' }} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hover, setHover] = useState(0);
   return (
@@ -149,6 +232,8 @@ export default function ProductDetail() {
 
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [selectedStrap, setSelectedStrap] = useState<Strap>(() => product?.strapOptions[0] ?? 'Leather');
 
   // Reset size/strap when product changes
@@ -308,7 +393,14 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
                 <img
                   src={activeMedia?.src ?? product.image}
                   alt={product.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  onClick={() => {
+                    const imgItems = mediaItems.filter(m => m.type === 'image');
+                    const clickedSrc = activeMedia?.src ?? product.image;
+                    const imgIdx = imgItems.findIndex(m => m.src === clickedSrc);
+                    setLightboxIndex(Math.max(0, imgIdx));
+                    setLightboxOpen(true);
+                  }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', cursor: 'zoom-in' }}
                 />
               )}
             </div>
@@ -521,6 +613,21 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
           .mobile-buy-bar { display: flex !important; }
         }
       `}</style>
+
+      {/* Lightbox */}
+      {lightboxOpen && (
+        <Lightbox
+          items={(() => {
+            const mediaItems: { type: 'image' | 'video'; src: string }[] = [
+              ...product.gallery.map(src => ({ type: 'image' as const, src })),
+              ...(product.video ? [{ type: 'video' as const, src: product.video }] : []),
+            ];
+            return mediaItems;
+          })()}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </div>
   );
 }

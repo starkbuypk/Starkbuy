@@ -1,0 +1,95 @@
+ supabase functions deploy server
+WARNING: Docker is not running
+Uploading asset (server): supabase/functions/server/index.ts
+Deployed Functions on project yfgxtattyuoovrriirtf: server
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/yfgxtattyuoovrriirtf/functions
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> git add -A
+warning: in the working copy of '.figma/make/analyze-routes', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/deploy', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/deploy-preview', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/dev', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/dev.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/format', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/install', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/langserver', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.figma/make/site.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitattributes', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/workflows/deploy.yml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.mise.toml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'AGENTS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pnpm-lock.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/.htaccess', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/ai-catalog.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/favicon.svg', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/llms.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/robots.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/sitemap.xml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/App.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/BackToTop.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/ProductCard.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/StarkBuyLogo.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/icons/Icons.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/AnnouncementBar.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/CartDrawer.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/Footer.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/Header.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/Layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/MobileBottomTabs.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/SearchOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/layout/WhatsAppFAB.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/config.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/context/AuthContext.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/context/CartContext.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/context/WishlistContext.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/data/products.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/data/slides.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/hooks/useSEO.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/hooks/useStoreData.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/imports/pasted_text/starkbuy-audit.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/index.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/supabase.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/AccountPage.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/Admin.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/CheckoutPage.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/Collections.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/Home.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/LoginPage.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/ProductDetail.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/stubs.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/adminStore.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/recentlyViewed.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/reviews.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/supabaseStore.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/toast.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/vite-env.d.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase-setup.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/functions/server/index.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/functions/server/kv_store.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'vite.config.ts', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> git commit -m "feat: Hostinger SMTP email, remove Brevo"
+[main 17785b4] feat: Hostinger SMTP email, remove Brevo
+ 3 files changed, 41 insertions(+), 9 deletions(-)
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> git push origin main
+Enumerating objects: 19, done.
+Counting objects: 100% (19/19), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (9/9), done.
+Writing objects: 100% (10/10), 1.51 KiB | 220.00 KiB/s, done.
+Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
+To https://github.com/starkbuypk/Starkbuy.git
+   72dd9d8..17785b4  main -> main
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy> npm run build
+
+> figma-make-app@1.0.0 build
+> vite build
+
+'vite' is not recognized as an internal or external command,
+operable program or batch file.
+PS C:\Users\sunny\OneDrive\Desktop\Starkbuy>

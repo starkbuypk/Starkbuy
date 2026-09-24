@@ -150,7 +150,7 @@ export default function Collections() {
       default: list.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
     return list;
-  }, [activeCategory, activeGender, inStockOnly, sort]);
+  }, [activeCategory, activeGender, inStockOnly, sort, products]);
 
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 

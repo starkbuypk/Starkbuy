@@ -279,3 +279,22 @@ export async function dbClearAuditLog(): Promise<void> {
   const { error } = await supabase.from('audit_log').delete().not('id', 'is', null);
   if (error) throw new Error(error.message);
 }
+
+/* ── Site Config (categories, shipping, etc.) ────────────────────── */
+
+export async function dbGetConfig<T>(key: string): Promise<T | null> {
+  const { data, error } = await supabase
+    .from('site_config')
+    .select('value')
+    .eq('key', key)
+    .maybeSingle();
+  if (error) { if (import.meta.env.DEV) console.error('dbGetConfig:', error); return null; }
+  return data ? (data.value as T) : null;
+}
+
+export async function dbSetConfig<T>(key: string, value: T): Promise<void> {
+  const { error } = await supabase
+    .from('site_config')
+    .upsert({ key, value }, { onConflict: 'key' });
+  if (error) throw new Error(error.message);
+}

@@ -7,9 +7,8 @@ import { BRAND } from '../config';
 import { getSlides, saveSlides, resetSlides, type HeroSlide } from '../data/slides';
 import {
   getNewArrivalOverrides, setNewArrivalOverrides,
-  getCategories, saveCategories, DEFAULT_CATEGORIES,
+  DEFAULT_CATEGORIES, type CategoryConfig,
   getAbout, saveAbout, type AboutContent,
-  getCodFee, saveCodFee,
   getFreeShippingThreshold, saveFreeShippingThreshold,
   getShippingCost, saveShippingCost,
 } from '../utils/adminStore';
@@ -18,6 +17,7 @@ import {
   dbGetCoupons, dbSaveCoupon, dbUpdateCoupon, dbDeleteCoupon, dbClearCoupons, type StoredCoupon,
   dbGetAuditLog, dbAddAuditEntry, dbClearAuditLog, type AuditEntry,
   dbGetProducts, dbSaveProduct, dbDeleteProduct,
+  dbGetConfig, dbSetConfig,
 } from '../utils/supabaseStore';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -858,7 +858,6 @@ function Orders() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', fontSize: '0.875rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--luna-muted)' }}>Shipping</span><span>{detail.shipping === 0 ? 'Free' : formatPrice(detail.shipping)}</span></div>
-              {detail.codFee > 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--luna-muted)' }}>COD Fee</span><span>{formatPrice(detail.codFee)}</span></div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1rem', borderTop: '1px solid rgba(26,22,20,0.08)', paddingTop: '0.5rem', marginTop: '0.25rem' }}><span>Total</span><span style={{ color: 'var(--luna-1)', fontVariantNumeric: 'tabular-nums' }}>{formatPrice(detail.total)}</span></div>
             </div>
             <div style={{ marginTop: '1.25rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -1213,14 +1212,40 @@ function NewArrivalsPanel() {
 }
 
 function CategoriesPanel() {
-  const [cats, setCats] = useState(() => getCategories());
+  const [cats, setCats] = useState<CategoryConfig[]>(DEFAULT_CATEGORIES);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState('');
 
-  function persist(next: typeof cats) { setCats(next); saveCategories(next); dispatch(EV_CATEGORIES); }
+  useEffect(() => {
+    dbGetConfig<CategoryConfig[]>('categories').then(fromDb => {
+      if (fromDb) setCats(fromDb);
+    });
+  }, []);
+
+  async function persist(next: CategoryConfig[]) {
+    setCats(next);
+    setSaving(true);
+    setSaveMsg('');
+    try {
+      await dbSetConfig('categories', next);
+      dispatch(EV_CATEGORIES);
+      setSaveMsg('Saved!');
+    } catch {
+      setSaveMsg('Save failed — try again');
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMsg(''), 3000);
+    }
+  }
+
   function toggleCat(label: string) {
     persist(cats.map(c => c.label === label ? { ...c, enabled: !c.enabled } : c));
   }
   function updateImg(label: string, img: string) {
     persist(cats.map(c => c.label === label ? { ...c, img } : c));
+  }
+  function updateLabel(label: string, newLabel: string) {
+    persist(cats.map(c => c.label === label ? { ...c, label: newLabel } : c));
   }
   function moveUp(i: number) {
     if (i === 0) return;
@@ -1234,7 +1259,7 @@ function CategoriesPanel() {
   return (
     <div>
       <p style={{ color: 'var(--luna-muted)', fontSize: '0.875rem', marginBottom: '1.25rem' }}>
-        Enable/disable categories shown on the home page. Reorder them by using the arrows. You can also update category images.
+        Changes save to Supabase and reflect for all customers immediately — no deployment needed.
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
         {cats.map((cat, i) => (
@@ -1249,16 +1274,28 @@ function CategoriesPanel() {
               <Toggle checked={cat.enabled} onChange={() => toggleCat(cat.label)} />
             </div>
             {cat.enabled && (
-              <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(26,22,20,0.06)' }}>
+              <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(26,22,20,0.06)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--luna-muted)', marginBottom: '0.25rem' }}>Category Name</label>
+                  <input
+                    value={cat.label}
+                    onChange={e => updateLabel(cat.label, e.target.value)}
+                    style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid rgba(26,22,20,0.15)', borderRadius: 'var(--radius)', fontSize: '0.875rem', fontFamily: 'DM Sans, sans-serif', background: '#fff', color: 'var(--luna-fg)', boxSizing: 'border-box' }}
+                  />
+                </div>
                 <ImageUploadField label="Category Image" value={cat.img} onChange={v => updateImg(cat.label, v)} compact />
               </div>
             )}
           </div>
         ))}
       </div>
-      <button onClick={() => { saveCategories(DEFAULT_CATEGORIES); setCats(DEFAULT_CATEGORIES); dispatch(EV_CATEGORIES); }} style={{ marginTop: '1rem', padding: '0.5rem 1rem', background: 'transparent', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 'var(--radius)', color: 'rgba(248,113,113,0.8)', fontSize: '0.8125rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-        Reset to defaults
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+        <button onClick={() => persist(DEFAULT_CATEGORIES)} style={{ padding: '0.5rem 1rem', background: 'transparent', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 'var(--radius)', color: 'rgba(248,113,113,0.8)', fontSize: '0.8125rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+          Reset to defaults
+        </button>
+        {saving && <span style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)' }}>Saving…</span>}
+        {saveMsg && <span style={{ fontSize: '0.8125rem', color: saveMsg.includes('fail') ? 'rgba(248,113,113,0.9)' : 'rgba(34,197,94,0.9)' }}>{saveMsg}</span>}
+      </div>
     </div>
   );
 }
@@ -1332,17 +1369,9 @@ function AuditLog() {
 
 /* ── Section: Settings ────────────────────────────────────────── */
 function Settings() {
-  const [codFee, setCodFeeState] = useState(() => getCodFee());
-  const [codFeeSaved, setCodFeeSaved] = useState(false);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(() => getFreeShippingThreshold());
   const [shippingCostState, setShippingCostState] = useState(() => getShippingCost());
   const [shippingSaved, setShippingSaved] = useState(false);
-
-  function saveFee() {
-    saveCodFee(codFee);
-    setCodFeeSaved(true);
-    setTimeout(() => setCodFeeSaved(false), 2000);
-  }
 
   function saveShipping() {
     saveFreeShippingThreshold(freeShippingThreshold);
@@ -1375,33 +1404,6 @@ function Settings() {
             ))}
           </div>
           <button style={saveBtn}>Save General</button>
-        </div>
-
-        {/* Payments — COD only */}
-        <div style={cardStyle}>
-          <p style={eyebrow}>Payments</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={rowStyle}>
-              <label style={labelStyle}>Payment method</label>
-              <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--luna-fg)' }}>Cash on Delivery</span>
-            </div>
-            <div style={rowStyle}>
-              <label style={labelStyle}>COD Fee (Rs.)</label>
-              <input
-                type="number"
-                value={codFee}
-                onChange={e => { setCodFeeState(Number(e.target.value)); setCodFeeSaved(false); }}
-                style={inputStyle}
-                min={0}
-              />
-            </div>
-            <p style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', margin: 0 }}>
-              This fee is automatically added to every order at checkout.
-            </p>
-          </div>
-          <button onClick={saveFee} style={{ ...saveBtn, color: codFeeSaved ? '#3A7A38' : 'var(--luna-1)' }}>
-            {codFeeSaved ? '✓ Saved' : 'Save Payments'}
-          </button>
         </div>
 
         {/* Shipping */}

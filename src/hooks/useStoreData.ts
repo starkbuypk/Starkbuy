@@ -3,10 +3,10 @@ import type { Product } from '../data/products';
 import { getSlides } from '../data/slides';
 import type { HeroSlide } from '../data/slides';
 import {
-  getCategories,
   type CategoryConfig,
+  DEFAULT_CATEGORIES,
 } from '../utils/adminStore';
-import { dbGetProducts } from '../utils/supabaseStore';
+import { dbGetProducts, dbGetConfig } from '../utils/supabaseStore';
 
 // Custom events dispatched by Admin.tsx after any save
 export const EV_PRODUCTS   = 'sb-products-updated';
@@ -48,15 +48,16 @@ export function useSlides(): HeroSlide[] {
 }
 
 export function useCategories(): CategoryConfig[] {
-  const [cats, setCats] = useState<CategoryConfig[]>(() =>
-    getCategories().filter(c => c.enabled)
-  );
+  const [cats, setCats] = useState<CategoryConfig[]>(DEFAULT_CATEGORIES.filter(c => c.enabled));
 
-  function refresh() {
-    setCats(getCategories().filter(c => c.enabled));
+  async function refresh() {
+    const fromDb = await dbGetConfig<CategoryConfig[]>('categories');
+    const list = fromDb ?? DEFAULT_CATEGORIES;
+    setCats(list.filter(c => c.enabled));
   }
 
   useEffect(() => {
+    refresh();
     window.addEventListener(EV_CATEGORIES, refresh);
     return () => window.removeEventListener(EV_CATEGORIES, refresh);
   }, []);

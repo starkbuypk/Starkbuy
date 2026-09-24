@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { formatPrice } from '../../data/products';
 import { IconX, IconMinus, IconPlus, IconTrash } from '../icons/Icons';
-import { BRAND } from '../../config';
 
 export function CartDrawer() {
   const { items, open, closeCart, removeFromCart, updateQty, subtotal } = useCart();
@@ -19,7 +18,6 @@ export function CartDrawer() {
 
   if (!open) return null;
 
-  const prepaid = Math.round(subtotal * 0.9);
 
   return (
     <>
@@ -105,17 +103,8 @@ export function CartDrawer() {
         {/* Footer */}
         {items.length > 0 && (
           <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid rgba(26,22,20,0.08)', flexShrink: 0 }}>
-            {/* Prepaid callout */}
-            <div style={{ background: 'rgba(26,22,20,0.06)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: 'var(--radius)', padding: '0.75rem 1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ fontSize: '0.8125rem', color: 'var(--luna-1)', fontWeight: 500, margin: 0 }}>Pay now, save {BRAND.prepaidDiscount}%</p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', margin: '0.125rem 0 0' }}>Prepaid price: {formatPrice(prepaid)}</p>
-              </div>
-              <span className="badge badge-accent">PREPAID</span>
-            </div>
-
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <span style={{ color: 'var(--luna-muted)', fontSize: '0.9375rem' }}>Subtotal (COD)</span>
+              <span style={{ color: 'var(--luna-muted)', fontSize: '0.9375rem' }}>Subtotal</span>
               <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>{formatPrice(subtotal)}</span>
             </div>
             <p style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)', marginBottom: '1rem' }}>Shipping calculated at checkout.</p>

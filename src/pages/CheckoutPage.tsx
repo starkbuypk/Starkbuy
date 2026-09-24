@@ -5,7 +5,7 @@ import { formatPrice } from '../data/products';
 import { BRAND } from '../config';
 import { IconChevronRight, IconShield, IconTruck } from '../components/icons/Icons';
 import { toast } from '../utils/toast';
-import { getCodFee, getFreeShippingThreshold, getShippingCost } from '../utils/adminStore';
+import { getFreeShippingThreshold, getShippingCost } from '../utils/adminStore';
 import { dbPlaceOrder, dbSaveOrder, dbValidateCoupon, type StoredCoupon, type PlaceOrderResult } from '../utils/supabaseStore';
 import { supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 
@@ -195,8 +195,7 @@ function OrderSummary({
   const { items, subtotal } = useCart();
   const couponDiscount = calcDiscount(appliedCoupon, subtotal);
   const shipping = subtotal >= getFreeShippingThreshold() ? 0 : getShippingCost();
-  const codFee = getCodFee();
-  const total = subtotal - couponDiscount + shipping + codFee;
+  const total = subtotal - couponDiscount + shipping;
 
   async function applyCoupon() {
     const code = couponCode.toUpperCase().trim();
@@ -271,12 +270,6 @@ function OrderSummary({
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: '#3A7A38' }}>
               <span>Coupon ({appliedCoupon.code})</span>
               <span style={{ fontVariantNumeric: 'tabular-nums' }}>−{formatPrice(couponDiscount)}</span>
-            </div>
-          )}
-          {codFee > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-              <span style={{ color: 'var(--luna-muted)' }}>COD Fee</span>
-              <span style={{ fontVariantNumeric: 'tabular-nums' }}>+{formatPrice(codFee)}</span>
             </div>
           )}
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
@@ -432,13 +425,12 @@ export default function CheckoutPage() {
 
     const orderDate = new Date().toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' });
     const shippingCost = subtotal >= getFreeShippingThreshold() ? 0 : getShippingCost();
-    const codFeeAmt = getCodFee();
     const discount = appliedCoupon
       ? appliedCoupon.type === 'Percentage'
         ? Math.round(subtotal * appliedCoupon.value / 100)
         : appliedCoupon.value
       : 0;
-    const totalAmt = subtotal - discount + shippingCost + codFeeAmt;
+    const totalAmt = subtotal - discount + shippingCost;
 
     let result: PlaceOrderResult;
     try {
@@ -469,14 +461,14 @@ export default function CheckoutPage() {
           items:    items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.discountPercent > 0 ? Math.round(i.product.codPrice * (1 - i.product.discountPercent / 100)) : i.product.codPrice })),
           subtotal,
           shipping: shippingCost,
-          codFee:   codFeeAmt,
+          codFee:   0,
           total:    totalAmt,
           status:   'Processing',
         });
         result = {
           subtotal,
           shipping: shippingCost,
-          cod_fee:  codFeeAmt,
+          cod_fee:  0,
           discount,
           total:    totalAmt,
           items:    items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.discountPercent > 0 ? Math.round(i.product.codPrice * (1 - i.product.discountPercent / 100)) : i.product.codPrice })),
