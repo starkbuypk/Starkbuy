@@ -12,6 +12,8 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from '../utils/toast';
 import { IconChevronRight, IconHeart, IconTruck, IconShield, IconRefresh } from '../components/icons/Icons';
 import { getReviews, addReview, hasUserReviewed, type Review } from '../utils/reviews';
+import { getFreeShippingThreshold } from '../utils/adminStore';
+import { BRAND } from '../config';
 
 /* ── Star picker ──────────────────────────────────────────────── */
 /* ── Lightbox ─────────────────────────────────────────────────── */
@@ -232,6 +234,7 @@ export default function ProductDetail() {
 
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [selectedStrap, setSelectedStrap] = useState<Strap>(() => product?.strapOptions[0] ?? 'Leather');
@@ -357,7 +360,7 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
             {mediaItems.map((item, i) => (
               <button
                 key={i}
-                onClick={() => setActiveImg(i)}
+                onClick={() => { setActiveImg(i); setVideoPlaying(false); }}
                 style={{ width: 58, height: 58, borderRadius: '0.375rem', overflow: 'hidden', border: i === activeImg ? '2px solid var(--luna-1)' : '2px solid rgba(26,22,20,0.08)', cursor: 'pointer', padding: 0, flexShrink: 0, background: 'rgba(26,22,20,0.45)', transition: 'border-color 150ms', position: 'relative' }}
                 onMouseEnter={e => { if (i !== activeImg) e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)'; }}
                 onMouseLeave={e => { if (i !== activeImg) e.currentTarget.style.borderColor = 'rgba(26,22,20,0.08)'; }}
@@ -381,15 +384,34 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
           <div style={{ position: 'relative' }}>
             <div style={{ borderRadius: 'var(--radius)', overflow: 'hidden', background: activeMedia?.type === 'video' ? '#111' : '#EBEBEB', ...(activeMedia?.type === 'video' ? { minHeight: 320 } : { aspectRatio: '3/4' }) }}>
               {activeMedia?.type === 'video' ? (
-                <video
-                  key={activeMedia.src}
-                  src={activeMedia.src}
-                  controls
-                  playsInline
-                  preload="auto"
-                  poster={product.gallery[0] ?? product.image}
-                  style={{ width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280, display: 'block' }}
-                />
+                videoPlaying ? (
+                  <video
+                    key={activeMedia.src}
+                    src={activeMedia.src}
+                    controls
+                    autoPlay
+                    playsInline
+                    preload="auto"
+                    style={{ width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280, display: 'block' }}
+                  />
+                ) : (
+                  <div
+                    onClick={() => setVideoPlaying(true)}
+                    style={{ position: 'relative', cursor: 'pointer', minHeight: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111' }}
+                  >
+                    {(product.gallery[0] ?? product.image) && (
+                      <img
+                        src={product.gallery[0] ?? product.image}
+                        alt={product.name}
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55 }}
+                      />
+                    )}
+                    <div style={{ position: 'relative', zIndex: 1, width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 24px rgba(0,0,0,0.35)', transition: 'transform 150ms' }}>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="#1A1614" style={{ marginLeft: 4 }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </div>
+                    <p style={{ position: 'absolute', bottom: '1rem', left: 0, right: 0, textAlign: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '0.8125rem', zIndex: 1 }}>Tap to play video</p>
+                  </div>
+                )
               ) : (
                 <img
                   src={activeMedia?.src ?? product.image}
@@ -549,7 +571,7 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
             {/* Trust strip */}
             <div style={{ display: 'flex', gap: '0.875rem', flexWrap: 'wrap', padding: '0.75rem 0', borderTop: '1px solid rgba(26,22,20,0.08)' }}>
               {[
-                { icon: <IconTruck size={13} />, text: 'Free delivery above Rs. 2,000' },
+                { icon: <IconTruck size={13} />, text: `Free delivery above ${BRAND.currencySymbol} ${getFreeShippingThreshold().toLocaleString()}` },
                 { icon: <IconShield size={13} />, text: '12-month warranty' },
                 { icon: <IconRefresh size={13} />, text: '7-day returns' },
               ].map((item, i) => (
