@@ -167,6 +167,21 @@ export async function dbPlaceOrder(params: {
 
 /* ── Orders ──────────────────────────────────────────────────────── */
 
+export async function dbTrackOrder(id: string, contact: string): Promise<StoredOrder | null> {
+  const q = id.trim().toUpperCase();
+  const c = contact.trim().toLowerCase();
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('id', q)
+    .maybeSingle();
+  if (error || !data) return null;
+  const order = rowToOrder(data);
+  // Verify contact matches phone or email
+  if (order.phone.replace(/\s/g, '') !== c.replace(/\s/g, '') && order.email.toLowerCase() !== c) return null;
+  return order;
+}
+
 export async function dbGetOrders(): Promise<StoredOrder[]> {
   const { data, error } = await supabase
     .from('orders')

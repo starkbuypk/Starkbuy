@@ -233,10 +233,21 @@ export default function ProductDetail() {
   const { toggle, has } = useWishlist();
   const { user } = useAuth();
 
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  // Programmatically play video when user clicks play — more reliable than autoPlay
+  useEffect(() => {
+    if (videoPlaying && videoRef.current) {
+      const v = videoRef.current;
+      const attempt = () => v.play().catch(() => {});
+      if (v.readyState >= 2) attempt();
+      else v.addEventListener('canplay', attempt, { once: true });
+    }
+  }, [videoPlaying]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [selectedStrap, setSelectedStrap] = useState<Strap>(() => product?.strapOptions[0] ?? 'Leather');
 
@@ -387,14 +398,15 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
               {activeMedia?.type === 'video' ? (
                 videoPlaying ? (
                   <video
+                    ref={videoRef}
                     key={activeMedia.src}
                     src={activeMedia.src}
                     controls
-                    autoPlay
-                    muted
                     playsInline
                     preload="auto"
-                    style={{ width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280, display: 'block' }}
+                    style={{ width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280, display: 'block', background: '#000' }}
+                    onLoadedMetadata={() => { videoRef.current?.play().catch(() => {}); }}
+                    onCanPlay={() => { videoRef.current?.play().catch(() => {}); }}
                   />
                 ) : (
                   <div

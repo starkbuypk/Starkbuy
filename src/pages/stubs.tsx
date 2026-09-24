@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { IconChevronRight } from '../components/icons/Icons';
 import { getAbout } from '../utils/adminStore';
 import { supabaseUrl, supabaseAnonKey } from '../lib/supabase';
+import { dbTrackOrder, type StoredOrder } from '../utils/supabaseStore';
 
 function PageShell({ title, eyebrow, children, description }: { title: string; eyebrow?: string; children?: React.ReactNode; description?: string }) {
   useEffect(() => {
@@ -125,51 +126,212 @@ export function Checkout() {
   );
 }
 
+/* ── Status rank: higher = further along ─────────────────────── */
+const STATUS_RANK: Record<StoredOrder['status'], number> = {
+  Processing: 1,
+  Dispatched: 2,
+  Delivered: 3,
+  Cancelled: -1,
+};
+
+function statusBadgeLabel(s: StoredOrder['status']) {
+  if (s === 'Processing') return 'Processing';
+  if (s === 'Dispatched') return 'In Transit';
+  if (s === 'Delivered') return 'Delivered';
+  return 'Cancelled';
+}
+
+function statusBadgeStyle(s: StoredOrder['status']): React.CSSProperties {
+  if (s === 'Delivered') return { background: 'rgba(34,197,94,0.12)', color: '#3A7A38' };
+  if (s === 'Dispatched') return { background: 'rgba(201,168,76,0.12)', color: 'var(--luna-1)' };
+  if (s === 'Cancelled') return { background: 'rgba(196,72,48,0.1)', color: '#C44830' };
+  return { background: 'rgba(251,191,36,0.12)', color: '#b87f00' };
+}
+
 /* Track Order */
 export function TrackOrder() {
-  const [submitted, setSubmitted] = useState(false);
+  const [orderId, setOrderId] = useState('');
+  const [contact, setContact] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [order, setOrder] = useState<StoredOrder | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  async function handleTrack() {
+    if (!orderId.trim() || !contact.trim()) return;
+    setLoading(true);
+    setNotFound(false);
+    setOrder(null);
+    const result = await dbTrackOrder(orderId, contact);
+    setLoading(false);
+    if (result) {
+      setOrder(result);
+    } else {
+      setNotFound(true);
+    }
+  }
+
+  function reset() {
+    setOrder(null);
+    setNotFound(false);
+    setOrderId('');
+    setContact('');
+  }
+
+  const inputStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.95)',
+    border: '1px solid rgba(26,22,20,0.12)',
+    borderRadius: '0.5rem',
+    padding: '0.75rem 1rem',
+    color: 'var(--luna-fg)',
+    fontFamily: 'DM Sans, sans-serif',
+    outline: 'none',
+    fontSize: '0.9375rem',
+    width: '100%',
+    boxSizing: 'border-box' as const,
+  };
+
   return (
     <PageShell title="Track Your Order" eyebrow="Order tracking">
-      {!submitted ? (
+      {!order ? (
         <div style={{ maxWidth: 480 }}>
-          <p style={{ color: 'var(--luna-muted)', marginBottom: '1.5rem' }}>Enter your order number and phone number or email to check your delivery status.</p>
+          <p style={{ color: 'var(--luna-muted)', marginBottom: '1.5rem' }}>
+            Enter your order number and the phone or email used at checkout.
+          </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <input placeholder="Order number (e.g. SB-00123)" style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem' }} />
-            <input placeholder="Phone or email" style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem' }} />
-            <button className="btn btn-primary" onClick={() => setSubmitted(true)}>Track Order</button>
+            <input
+              value={orderId}
+              onChange={e => setOrderId(e.target.value)}
+              placeholder="Order number (e.g. SB-00123)"
+              style={inputStyle}
+              onKeyDown={e => e.key === 'Enter' && handleTrack()}
+            />
+            <input
+              value={contact}
+              onChange={e => setContact(e.target.value)}
+              placeholder="Phone number or email"
+              style={inputStyle}
+              onKeyDown={e => e.key === 'Enter' && handleTrack()}
+            />
+            {notFound && (
+              <p style={{ color: '#C44830', fontSize: '0.875rem', margin: 0 }}>
+                No order found. Check your order number and phone/email.
+              </p>
+            )}
+            <button
+              className="btn btn-primary"
+              onClick={handleTrack}
+              disabled={loading || !orderId.trim() || !contact.trim()}
+              style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'wait' : 'pointer' }}
+            >
+              {loading ? 'Searching…' : 'Track Order'}
+            </button>
           </div>
         </div>
       ) : (
         <div style={{ maxWidth: 560 }}>
           <div style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: 'var(--radius)', padding: '1.5rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'flex-start' }}>
               <div>
                 <p style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)', margin: 0 }}>Order number</p>
-                <p style={{ fontWeight: 600, margin: '0.125rem 0 0', fontVariantNumeric: 'tabular-nums' }}>SB-00123</p>
+                <p style={{ fontWeight: 700, margin: '0.125rem 0 0', fontVariantNumeric: 'tabular-nums', fontSize: '1.0625rem' }}>{order.id}</p>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)', margin: '0.25rem 0 0' }}>{order.name} · {order.city}</p>
               </div>
-              <span className="badge badge-accent">In Transit</span>
+              <span style={{
+                padding: '0.275rem 0.75rem',
+                borderRadius: 999,
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase' as const,
+                ...statusBadgeStyle(order.status),
+              }}>
+                {statusBadgeLabel(order.status)}
+              </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {[
-                { label: 'Order placed', sub: 'Sep 15, 2026, 3:42 PM', done: true },
-                { label: 'Processing', sub: 'Sep 15, 2026, 6:00 PM', done: true },
-                { label: 'Dispatched', sub: 'Sep 16, 2026, 9:00 AM', done: true },
-                { label: 'Out for delivery', sub: 'Expected today', done: false },
-              ].map((status, i) => (
-                <div key={i} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: status.done ? 'var(--luna-1)' : 'rgba(26,22,20,0.10)', border: status.done ? 'none' : '1px solid rgba(26,22,20,0.15)', flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {status.done && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--luna-5)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+
+            {/* Timeline */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {(
+                order.status === 'Cancelled'
+                  ? [
+                      { key: 'placed', label: 'Order placed', sub: order.date, done: true },
+                      { key: 'cancelled', label: 'Cancelled', sub: 'This order was cancelled', done: true, cancelled: true },
+                    ]
+                  : [
+                      { key: 'placed', label: 'Order placed', sub: order.date, done: true },
+                      { key: 'Processing', label: 'Processing', sub: STATUS_RANK[order.status] >= 1 ? 'Order is being prepared' : null, done: STATUS_RANK[order.status] >= 1 },
+                      { key: 'Dispatched', label: 'Dispatched', sub: STATUS_RANK[order.status] >= 2 ? 'Handed over to courier' : null, done: STATUS_RANK[order.status] >= 2 },
+                      { key: 'Delivered', label: 'Delivered', sub: STATUS_RANK[order.status] >= 3 ? 'Package delivered' : null, done: STATUS_RANK[order.status] >= 3 },
+                    ]
+              ).map((step, i, arr) => (
+                <div key={step.key} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', position: 'relative' }}>
+                  {/* Connector line */}
+                  {i < arr.length - 1 && (
+                    <div style={{
+                      position: 'absolute',
+                      left: 9,
+                      top: 22,
+                      width: 2,
+                      height: 36,
+                      background: step.done ? 'var(--luna-1)' : 'rgba(26,22,20,0.10)',
+                      borderRadius: 1,
+                    }} />
+                  )}
+                  {/* Dot */}
+                  <div style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    background: (step as any).cancelled ? '#C44830' : step.done ? 'var(--luna-1)' : 'rgba(26,22,20,0.10)',
+                    border: step.done ? 'none' : '2px solid rgba(26,22,20,0.15)',
+                    flexShrink: 0,
+                    marginTop: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1,
+                  }}>
+                    {step.done && (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    )}
                   </div>
-                  <div>
-                    <p style={{ fontWeight: 500, margin: 0, fontSize: '0.9375rem' }}>{status.label}</p>
-                    <p style={{ color: 'var(--luna-muted)', margin: '0.125rem 0 0', fontSize: '0.8125rem' }}>{status.sub}</p>
+                  {/* Text */}
+                  <div style={{ paddingBottom: i < arr.length - 1 ? '1.25rem' : 0 }}>
+                    <p style={{ fontWeight: step.done ? 600 : 500, margin: 0, fontSize: '0.9375rem', color: step.done ? 'var(--luna-fg)' : 'var(--luna-muted)' }}>
+                      {step.label}
+                    </p>
+                    {step.sub && (
+                      <p style={{ color: 'var(--luna-muted)', margin: '0.15rem 0 0', fontSize: '0.8125rem' }}>{step.sub}</p>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* Order summary */}
+            <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(26,22,20,0.08)' }}>
+              <p style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--luna-muted)', margin: '0 0 0.75rem' }}>Items ordered</p>
+              {order.items.map((item, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.375rem' }}>
+                  <span>{item.name} × {item.qty}</span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--luna-muted)' }}>{formatPrice(item.price * item.qty)}</span>
+                </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '0.9375rem', borderTop: '1px solid rgba(26,22,20,0.08)', paddingTop: '0.625rem', marginTop: '0.5rem' }}>
+                <span>Total paid</span>
+                <span style={{ color: 'var(--luna-1)', fontVariantNumeric: 'tabular-nums' }}>{formatPrice(order.total)}</span>
+              </div>
+            </div>
           </div>
-          <button onClick={() => setSubmitted(false)} style={{ background: 'none', border: 'none', color: 'var(--luna-1)', cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'DM Sans, sans-serif', padding: 0 }}>
-            Track another order
+
+          <button
+            onClick={reset}
+            style={{ background: 'none', border: 'none', color: 'var(--luna-1)', cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'DM Sans, sans-serif', padding: 0 }}
+          >
+            ← Track another order
           </button>
         </div>
       )}
