@@ -21,7 +21,7 @@ function esc(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
-/* ── Send email via Supabase Edge Function (C2 fix — key stays server-side) */
+/* ── Send email via Supabase Edge Function (Hostinger SMTP) ── */
 async function sendOrderEmail(to: { email: string; name: string }, subject: string, html: string) {
   try {
     await fetch(`${supabaseUrl}/functions/v1/server/send-order-email`, {
@@ -33,7 +33,7 @@ async function sendOrderEmail(to: { email: string; name: string }, subject: stri
       body: JSON.stringify({ to, subject, html }),
     });
   } catch {
-    // best-effort; order is already saved
+    // best-effort; order already saved to Supabase
   }
 }
 

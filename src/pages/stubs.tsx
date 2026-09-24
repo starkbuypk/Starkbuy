@@ -7,7 +7,7 @@ import { BRAND } from '../config';
 import { useState, useEffect } from 'react';
 import { IconChevronRight } from '../components/icons/Icons';
 import { getAbout } from '../utils/adminStore';
-import { supabaseUrl } from '../lib/supabase';
+import { supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 
 function PageShell({ title, eyebrow, children, description }: { title: string; eyebrow?: string; children?: React.ReactNode; description?: string }) {
   useEffect(() => {
@@ -494,8 +494,8 @@ export function ContactUs() {
               const html = `<h2>New Inquiry — ${subject}</h2><p><strong>From:</strong> ${name} (${email})</p><p><strong>Message:</strong><br/>${message.replace(/\n/g, '<br/>')}</p>`;
               await fetch(`${supabaseUrl}/functions/v1/server/send-order-email`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ to: { email: 'starkbuypk@gmail.com', name: 'StarkBuy' }, subject: `[Contact] ${subject} from ${name}`, html }),
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseAnonKey}` },
+                body: JSON.stringify({ to: { email: 'starkbuypk@gmail.com', name: 'StarkBuy Admin' }, subject: `[Contact] ${subject} from ${name}`, html }),
               });
               setSent(true);
             } catch {
