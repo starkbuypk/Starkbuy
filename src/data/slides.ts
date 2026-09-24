@@ -8,6 +8,7 @@ export interface HeroSlide {
   cta2Label: string;
   cta2To: string;
   image: string;
+  video?: string;
   enabled: boolean;
 }
 

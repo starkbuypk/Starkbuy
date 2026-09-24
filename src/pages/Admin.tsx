@@ -1174,7 +1174,10 @@ function HeroSlidesPanel() {
             {editId === slide.id && editing && (
               <div style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.10)', borderTop: 'none', borderRadius: '0 0 var(--radius) var(--radius)', padding: '1.25rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
                 <SlideField label="Eyebrow label" value={editing.eyebrow} onChange={v => updateField(slide.id, 'eyebrow', v)} />
-                <div><ImageUploadField label="Slide Image" value={editing.image} onChange={v => updateField(slide.id, 'image', v)} compact /></div>
+                <div><ImageUploadField label="Background Image (shown when no video)" value={editing.image} onChange={v => updateField(slide.id, 'image', v)} compact /></div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <VideoUploadField label="Background Video (optional — plays instead of image)" value={editing.video ?? ''} onChange={v => updateField(slide.id, 'video', v)} />
+                </div>
                 <SlideField label="Headline (use \\n for line break)" value={editing.title} onChange={v => updateField(slide.id, 'title', v)} multiline />
                 <SlideField label="Sub-text" value={editing.sub} onChange={v => updateField(slide.id, 'sub', v)} multiline />
                 <SlideField label="Button 1 label" value={editing.ctaLabel} onChange={v => updateField(slide.id, 'ctaLabel', v)} />

@@ -379,18 +379,17 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
 
           {/* Main image/video with arrows */}
           <div style={{ position: 'relative' }}>
-            <div style={{ borderRadius: 'var(--radius)', overflow: 'hidden', background: activeMedia?.type === 'video' ? '#000' : '#EBEBEB', ...(activeMedia?.type === 'video' ? { minHeight: 320 } : { aspectRatio: '3/4' }) }}>
+            <div style={{ borderRadius: 'var(--radius)', overflow: 'hidden', background: activeMedia?.type === 'video' ? '#111' : '#EBEBEB', ...(activeMedia?.type === 'video' ? { minHeight: 320 } : { aspectRatio: '3/4' }) }}>
               {activeMedia?.type === 'video' ? (
                 <video
                   key={activeMedia.src}
+                  src={activeMedia.src}
                   controls
                   playsInline
                   preload="auto"
-                  autoPlay={false}
-                  style={{ width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 200, objectFit: 'contain', display: 'block', background: '#000' }}
-                >
-                  <source src={activeMedia.src} />
-                </video>
+                  poster={product.gallery[0] ?? product.image}
+                  style={{ width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280, display: 'block' }}
+                />
               ) : (
                 <img
                   src={activeMedia?.src ?? product.image}

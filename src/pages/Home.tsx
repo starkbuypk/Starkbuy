@@ -47,7 +47,7 @@ function HeroSlider() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Background image */}
+      {/* Background image / video */}
       {slides.map((s, i) => (
         <div
           key={i}
@@ -58,16 +58,28 @@ function HeroSlider() {
             transition: 'opacity 600ms var(--ease-spring)',
           }}
         >
-          <img
-            src={s.image}
-            alt=""
-            loading={i === 0 ? 'eager' : 'lazy'}
-            fetchPriority={i === 0 ? 'high' : 'low'}
-            decoding={i === 0 ? 'sync' : 'async'}
-            width="1280"
-            height="720"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-          />
+          {s.video ? (
+            <video
+              src={s.video}
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster={s.image || undefined}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+            />
+          ) : (
+            <img
+              src={s.image}
+              alt=""
+              loading={i === 0 ? 'eager' : 'lazy'}
+              fetchPriority={i === 0 ? 'high' : 'low'}
+              decoding={i === 0 ? 'sync' : 'async'}
+              width="1280"
+              height="720"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+            />
+          )}
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(26,22,20,0.72) 0%, rgba(26,22,20,0.40) 55%, rgba(26,22,20,0.18) 100%)' }} />
         </div>
       ))}
