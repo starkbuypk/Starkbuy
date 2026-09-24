@@ -118,3 +118,31 @@ export function getCodFee(): number {
 export function saveCodFee(fee: number): void {
   localStorage.setItem(KEY_COD_FEE, String(fee));
 }
+
+const KEY_FREE_SHIPPING = 'sb_free_shipping_threshold';
+const DEFAULT_FREE_SHIPPING = 2000;
+
+export function getFreeShippingThreshold(): number {
+  try {
+    const v = localStorage.getItem(KEY_FREE_SHIPPING);
+    return v !== null ? Number(v) : DEFAULT_FREE_SHIPPING;
+  } catch { return DEFAULT_FREE_SHIPPING; }
+}
+
+export function saveFreeShippingThreshold(amount: number): void {
+  localStorage.setItem(KEY_FREE_SHIPPING, String(amount));
+}
+
+const KEY_SHIPPING_COST = 'sb_shipping_cost';
+const DEFAULT_SHIPPING_COST = 200;
+
+export function getShippingCost(): number {
+  try {
+    const v = localStorage.getItem(KEY_SHIPPING_COST);
+    return v !== null ? Number(v) : DEFAULT_SHIPPING_COST;
+  } catch { return DEFAULT_SHIPPING_COST; }
+}
+
+export function saveShippingCost(cost: number): void {
+  localStorage.setItem(KEY_SHIPPING_COST, String(cost));
+}

@@ -10,6 +10,8 @@ import {
   getCategories, saveCategories, DEFAULT_CATEGORIES,
   getAbout, saveAbout, type AboutContent,
   getCodFee, saveCodFee,
+  getFreeShippingThreshold, saveFreeShippingThreshold,
+  getShippingCost, saveShippingCost,
 } from '../utils/adminStore';
 import {
   dbGetOrders, dbUpdateOrderStatus, dbDeleteOrder, dbClearOrders, type StoredOrder,
@@ -1332,11 +1334,21 @@ function AuditLog() {
 function Settings() {
   const [codFee, setCodFeeState] = useState(() => getCodFee());
   const [codFeeSaved, setCodFeeSaved] = useState(false);
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState(() => getFreeShippingThreshold());
+  const [shippingCostState, setShippingCostState] = useState(() => getShippingCost());
+  const [shippingSaved, setShippingSaved] = useState(false);
 
   function saveFee() {
     saveCodFee(codFee);
     setCodFeeSaved(true);
     setTimeout(() => setCodFeeSaved(false), 2000);
+  }
+
+  function saveShipping() {
+    saveFreeShippingThreshold(freeShippingThreshold);
+    saveShippingCost(shippingCostState);
+    setShippingSaved(true);
+    setTimeout(() => setShippingSaved(false), 2000);
   }
 
   const inputStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.10)', borderRadius: '0.375rem', padding: '0.3rem 0.625rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.875rem', outline: 'none', maxWidth: 160, textAlign: 'right' };
@@ -1396,14 +1408,36 @@ function Settings() {
         <div style={cardStyle}>
           <p style={eyebrow}>Shipping</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {[{ label: 'Free shipping threshold', value: 'Rs. 2,000' }, { label: 'Standard delivery', value: '1–3 working days' }, { label: 'Coverage', value: 'Pakistan-wide' }, { label: 'Return window', value: '7 days' }].map(f => (
+            <div style={rowStyle}>
+              <label style={labelStyle}>Free shipping above (Rs.)</label>
+              <input
+                type="number"
+                value={freeShippingThreshold}
+                onChange={e => { setFreeShippingThreshold(Number(e.target.value)); setShippingSaved(false); }}
+                style={inputStyle}
+                min={0}
+              />
+            </div>
+            <div style={rowStyle}>
+              <label style={labelStyle}>Shipping cost (Rs.)</label>
+              <input
+                type="number"
+                value={shippingCostState}
+                onChange={e => { setShippingCostState(Number(e.target.value)); setShippingSaved(false); }}
+                style={inputStyle}
+                min={0}
+              />
+            </div>
+            {[{ label: 'Standard delivery', value: '1–3 working days' }, { label: 'Coverage', value: 'Pakistan-wide' }, { label: 'Return window', value: '7 days' }].map(f => (
               <div key={f.label} style={rowStyle}>
                 <label style={labelStyle}>{f.label}</label>
                 <input defaultValue={f.value} style={inputStyle} />
               </div>
             ))}
           </div>
-          <button style={saveBtn}>Save Shipping</button>
+          <button onClick={saveShipping} style={{ ...saveBtn, color: shippingSaved ? '#3A7A38' : 'var(--luna-1)' }}>
+            {shippingSaved ? '✓ Saved' : 'Save Shipping'}
+          </button>
         </div>
 
         {/* Data Management */}

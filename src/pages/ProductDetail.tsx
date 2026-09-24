@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 import { recordView } from '../utils/recentlyViewed';
-import { getProductBySlug, formatPrice, prepaidPrice } from '../data/products';
-import type { CaseSize, Strap } from '../data/products';
+import { getProductBySlug, formatPrice } from '../data/products';
+import type { Strap } from '../data/products';
 import { useAllProducts } from '../hooks/useStoreData';
 import { ProductCard } from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
@@ -11,7 +11,6 @@ import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 import { toast } from '../utils/toast';
 import { IconChevronRight, IconHeart, IconTruck, IconShield, IconRefresh } from '../components/icons/Icons';
-import { BRAND } from '../config';
 import { getReviews, addReview, hasUserReviewed, type Review } from '../utils/reviews';
 
 /* ── Star picker ──────────────────────────────────────────────── */
@@ -150,14 +149,12 @@ export default function ProductDetail() {
 
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
-  const [selectedSize, setSelectedSize] = useState<CaseSize>(() => product?.caseSizeOptions[0] ?? '40mm');
   const [selectedStrap, setSelectedStrap] = useState<Strap>(() => product?.strapOptions[0] ?? 'Leather');
 
   // Reset size/strap when product changes
   useEffect(() => {
     if (product) {
-      setSelectedSize(product.caseSizeOptions[0] ?? '40mm');
-      setSelectedStrap(product.strapOptions[0] ?? 'Leather');
+setSelectedStrap(product.strapOptions[0] ?? 'Leather');
     }
   }, [product?.id]);
 
@@ -226,17 +223,16 @@ export default function ProductDetail() {
   const wishlisted = has(product.id);
   const salePrice = product.discountPercent > 0 ? Math.round(product.codPrice * (1 - product.discountPercent / 100)) : null;
   const displayPrice = salePrice ?? product.codPrice;
-  const ppPrice = prepaidPrice(displayPrice);
   const related = allProducts.filter(p => p.id !== product.id && (p.category === product.category || p.gender === product.gender)).slice(0, 4);
 
   function handleAddToCart() {
-    addToCart({ product: product!, caseSize: selectedSize || product!.caseSizeOptions[0], strap: selectedStrap || product!.strapOptions[0], quantity: qty });
+    addToCart({ product: product!, caseSize: (product!.caseSizeOptions[0] ?? '40mm'), strap: selectedStrap || product!.strapOptions[0], quantity: qty });
     toast(`${product!.name} added to bag`);
     openCart();
   }
 
   function handleBuyNow() {
-    addToCart({ product: product!, caseSize: selectedSize || product!.caseSizeOptions[0], strap: selectedStrap || product!.strapOptions[0], quantity: qty });
+    addToCart({ product: product!, caseSize: (product!.caseSizeOptions[0] ?? '40mm'), strap: selectedStrap || product!.strapOptions[0], quantity: qty });
     navigate('/checkout');
   }
 
@@ -301,10 +297,12 @@ export default function ProductDetail() {
             <div style={{ borderRadius: 'var(--radius)', overflow: 'hidden', background: '#EBEBEB', aspectRatio: '3/4' }}>
               {activeMedia?.type === 'video' ? (
                 <video
+                  key={activeMedia.src}
                   src={activeMedia.src}
                   controls
-                  autoPlay={false}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  playsInline
+                  preload="metadata"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#000' }}
                 />
               ) : (
                 <img
@@ -343,38 +341,38 @@ export default function ProductDetail() {
             )}
           </div>
 
-          {/* Info panel — scaled down ~40% in font/spacing */}
-          <div style={{ fontSize: '0.8rem' }}>
+          {/* Info panel */}
+          <div style={{ fontSize: '1rem' }}>
             {/* Category eyebrow */}
-            <p style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--luna-2)', margin: '0 0 0.45rem' }}>
+            <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--luna-2)', margin: '0 0 0.55rem' }}>
               {product.category}
             </p>
 
             {/* Product name */}
-            <h1 className="font-display" style={{ fontSize: 'clamp(0.9rem, 1.8vw, 1.35rem)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 0.5rem', lineHeight: 1.05 }}>
+            <h1 className="font-display" style={{ fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 0.625rem', lineHeight: 1.1 }}>
               {product.name}
             </h1>
 
             {/* Rating */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.6rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', color: '#f59e0b' }}>
                 {[1, 2, 3, 4, 5].map(n => (
-                  <svg key={n} width="10" height="10" viewBox="0 0 24 24" fill={n <= Math.round(product.rating) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5}>
+                  <svg key={n} width="13" height="13" viewBox="0 0 24 24" fill={n <= Math.round(product.rating) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5}>
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
                 ))}
               </div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--luna-muted)' }}>{product.rating} · {product.reviewCount} reviews</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--luna-muted)' }}>{product.rating} · {product.reviewCount} reviews</span>
             </div>
 
             {/* Price */}
-            <div style={{ marginBottom: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.3rem' }}>
-                <span style={{ fontSize: 'clamp(0.875rem, 1.6vw, 1.125rem)', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: salePrice ? 'var(--luna-1)' : 'var(--luna-fg)' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.625rem', marginBottom: '0.3rem' }}>
+                <span style={{ fontSize: 'clamp(1.25rem, 2.2vw, 1.625rem)', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: salePrice ? 'var(--luna-1)' : 'var(--luna-fg)' }}>
                   {formatPrice(displayPrice)}
                 </span>
                 {salePrice && (
-                  <span style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' }}>
+                  <span style={{ fontSize: '0.875rem', color: 'var(--luna-muted)', textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' }}>
                     {formatPrice(product.codPrice)}
                   </span>
                 )}
@@ -382,62 +380,26 @@ export default function ProductDetail() {
                   <span className="badge badge-accent">{product.discountPercent}% OFF</span>
                 )}
               </div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.6rem', background: 'rgba(26,22,20,0.06)', border: '1px solid rgba(26,22,20,0.10)', borderRadius: '0.5rem' }}>
-                <span style={{ fontSize: '0.65rem', color: 'var(--luna-muted)' }}>Pay online:</span>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'var(--luna-1)' }}>{formatPrice(ppPrice)}</span>
-                <span className="badge badge-accent">{BRAND.prepaidDiscount}% OFF</span>
-              </div>
             </div>
-
-            {/* Case Size selector */}
-            {product.caseSizeOptions.length > 0 && (
-              <div style={{ marginBottom: '0.75rem' }}>
-                <p style={{ fontSize: '0.575rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.4rem' }}>
-                  Case Size: <span style={{ color: 'var(--luna-1)', fontWeight: 700 }}>{selectedSize}</span>
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
-                  {product.caseSizeOptions.map(size => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size as CaseSize)}
-                      style={{
-                        padding: '0.25rem 0.625rem',
-                        borderRadius: '0.375rem',
-                        border: selectedSize === size ? '1.5px solid var(--luna-1)' : '1px solid rgba(26,22,20,0.15)',
-                        background: selectedSize === size ? 'rgba(201,168,76,0.12)' : 'rgba(0,0,0,0.04)',
-                        color: selectedSize === size ? 'var(--luna-1)' : 'var(--luna-muted)',
-                        fontSize: '0.6875rem',
-                        fontWeight: selectedSize === size ? 700 : 400,
-                        cursor: 'pointer',
-                        fontFamily: 'DM Sans, sans-serif',
-                        transition: 'all 120ms',
-                      }}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Strap selector */}
             {product.strapOptions.length > 0 && (
-              <div style={{ marginBottom: '0.75rem' }}>
-                <p style={{ fontSize: '0.575rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.4rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.5rem' }}>
                   Strap: <span style={{ color: 'var(--luna-1)', fontWeight: 700 }}>{selectedStrap}</span>
                 </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                   {product.strapOptions.map(strap => (
                     <button
                       key={strap}
                       onClick={() => setSelectedStrap(strap as Strap)}
                       style={{
-                        padding: '0.25rem 0.625rem',
+                        padding: '0.35rem 0.875rem',
                         borderRadius: '0.375rem',
                         border: selectedStrap === strap ? '1.5px solid var(--luna-1)' : '1px solid rgba(26,22,20,0.15)',
                         background: selectedStrap === strap ? 'rgba(201,168,76,0.12)' : 'rgba(0,0,0,0.04)',
                         color: selectedStrap === strap ? 'var(--luna-1)' : 'var(--luna-muted)',
-                        fontSize: '0.6875rem',
+                        fontSize: '0.8125rem',
                         fontWeight: selectedStrap === strap ? 700 : 400,
                         cursor: 'pointer',
                         fontFamily: 'DM Sans, sans-serif',
@@ -452,30 +414,30 @@ export default function ProductDetail() {
             )}
 
             {/* Quantity */}
-            <div style={{ marginBottom: '0.75rem' }}>
-              <p style={{ fontSize: '0.575rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.3rem' }}>Quantity</p>
+            <div style={{ marginBottom: '1rem' }}>
+              <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.4rem' }}>Quantity</p>
               <div style={{ display: 'flex', alignItems: 'center', background: '#FFFFFF', border: '1px solid rgba(26,22,20,0.10)', borderRadius: '0.5rem', overflow: 'hidden', width: 'fit-content' }}>
-                <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 28, height: 28, background: 'none', border: 'none', color: 'var(--luna-fg)', cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.06)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>−</button>
-                <span style={{ minWidth: 28, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: '0.75rem' }}>{qty}</span>
-                <button onClick={() => setQty(q => q + 1)} style={{ width: 28, height: 28, background: 'none', border: 'none', color: 'var(--luna-fg)', cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.06)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>+</button>
+                <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 36, height: 36, background: 'none', border: 'none', color: 'var(--luna-fg)', cursor: 'pointer', fontSize: '1rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.06)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>−</button>
+                <span style={{ minWidth: 36, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: '0.9375rem' }}>{qty}</span>
+                <button onClick={() => setQty(q => q + 1)} style={{ width: 36, height: 36, background: 'none', border: 'none', color: 'var(--luna-fg)', cursor: 'pointer', fontSize: '1rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.06)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>+</button>
               </div>
             </div>
 
             {/* CTA buttons */}
-            <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-              <button onClick={handleAddToCart} className="btn btn-outline" style={{ flex: 1, minWidth: 80, justifyContent: 'center', fontSize: '0.7rem', minHeight: 32, padding: '0 0.75rem', transition: 'all 150ms' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+              <button onClick={handleAddToCart} className="btn btn-outline" style={{ flex: 1, minWidth: 100, justifyContent: 'center', fontSize: '0.875rem', minHeight: 42, padding: '0 1rem', transition: 'all 150ms' }}>
                 Add to Cart
               </button>
-              <button onClick={handleBuyNow} className="btn btn-primary" style={{ flex: 1, minWidth: 80, justifyContent: 'center', fontSize: '0.7rem', minHeight: 32, padding: '0 0.75rem' }}>
+              <button onClick={handleBuyNow} className="btn btn-primary" style={{ flex: 1, minWidth: 100, justifyContent: 'center', fontSize: '0.875rem', minHeight: 42, padding: '0 1rem' }}>
                 Buy Now
               </button>
-              <button onClick={handleWishlistToggle} style={{ width: 32, height: 32, borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.10)', color: wishlisted ? 'var(--luna-1)' : 'var(--luna-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 150ms, background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.08)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}>
-                <IconHeart size={14} filled={wishlisted} />
+              <button onClick={handleWishlistToggle} style={{ width: 42, height: 42, borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.10)', color: wishlisted ? 'var(--luna-1)' : 'var(--luna-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 150ms, background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.08)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}>
+                <IconHeart size={17} filled={wishlisted} />
               </button>
             </div>
 
             {/* Product metadata grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(26,22,20,0.06)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(26,22,20,0.06)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: '1rem' }}>
               {[
                 { label: 'COLLECTION', value: product.brand },
                 { label: 'CATEGORY', value: product.category },
@@ -484,21 +446,21 @@ export default function ProductDetail() {
                 { label: 'MOVEMENT', value: product.movement || '—' },
                 { label: 'WATER RESISTANCE', value: product.waterResistance || '—' },
               ].map(item => (
-                <div key={item.label} style={{ padding: '0.375rem 0.5rem', background: 'rgba(0,0,0,0.03)' }}>
-                  <p style={{ margin: 0, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--luna-muted)', textTransform: 'uppercase', marginBottom: '0.1rem' }}>{item.label}</p>
-                  <p style={{ margin: 0, fontSize: '0.65rem', fontWeight: 600, color: item.label === 'AVAILABILITY' ? (product.inStock ? '#3A7A38' : '#C44830') : 'var(--luna-fg)' }}>{item.value}</p>
+                <div key={item.label} style={{ padding: '0.5rem 0.75rem', background: 'rgba(0,0,0,0.03)' }}>
+                  <p style={{ margin: 0, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--luna-muted)', textTransform: 'uppercase', marginBottom: '0.15rem' }}>{item.label}</p>
+                  <p style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 600, color: item.label === 'AVAILABILITY' ? (product.inStock ? '#3A7A38' : '#C44830') : 'var(--luna-fg)' }}>{item.value}</p>
                 </div>
               ))}
             </div>
 
             {/* Trust strip */}
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', padding: '0.6rem 0', borderTop: '1px solid rgba(26,22,20,0.08)' }}>
+            <div style={{ display: 'flex', gap: '0.875rem', flexWrap: 'wrap', padding: '0.75rem 0', borderTop: '1px solid rgba(26,22,20,0.08)' }}>
               {[
-                { icon: <IconTruck size={10} />, text: 'Free delivery above Rs. 2,000' },
-                { icon: <IconShield size={10} />, text: '12-month warranty' },
-                { icon: <IconRefresh size={10} />, text: '7-day returns' },
+                { icon: <IconTruck size={13} />, text: 'Free delivery above Rs. 2,000' },
+                { icon: <IconShield size={13} />, text: '12-month warranty' },
+                { icon: <IconRefresh size={13} />, text: '7-day returns' },
               ].map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--luna-muted)', fontSize: '0.65rem' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--luna-muted)', fontSize: '0.8rem' }}>
                   <span style={{ color: 'var(--luna-2)' }}>{item.icon}</span>
                   {item.text}
                 </div>
@@ -542,7 +504,7 @@ export default function ProductDetail() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ margin: 0, fontWeight: 700, fontVariantNumeric: 'tabular-nums', fontSize: '1rem', color: 'var(--luna-1)' }}>{formatPrice(displayPrice)}</p>
           <p style={{ margin: 0, fontSize: '0.6875rem', color: 'var(--luna-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {selectedSize} · {selectedStrap}
+            {selectedStrap}
           </p>
         </div>
         <button onClick={handleAddToCart} className="btn btn-primary" style={{ padding: '0.5625rem 1.25rem', fontSize: '0.875rem', flexShrink: 0 }}>Add to Cart</button>

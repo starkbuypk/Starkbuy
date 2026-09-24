@@ -70,7 +70,7 @@ export function CartDrawer() {
                       </button>
                     </div>
                     <p style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)', margin: '0.25rem 0 0.75rem' }}>
-                      {item.caseSize} · {item.strap}
+                      {item.strap}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       {/* Qty stepper */}
@@ -92,7 +92,7 @@ export function CartDrawer() {
                         </button>
                       </div>
                       <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: '0.9375rem', color: 'var(--luna-1)' }}>
-                        {formatPrice(item.product.codPrice * item.quantity)}
+                        {formatPrice((item.product.discountPercent > 0 ? Math.round(item.product.codPrice * (1 - item.product.discountPercent / 100)) : item.product.codPrice) * item.quantity)}
                       </span>
                     </div>
                   </div>

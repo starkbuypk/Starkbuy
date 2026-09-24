@@ -5,7 +5,7 @@ import { formatPrice } from '../data/products';
 import { BRAND } from '../config';
 import { IconChevronRight, IconShield, IconTruck } from '../components/icons/Icons';
 import { toast } from '../utils/toast';
-import { getCodFee } from '../utils/adminStore';
+import { getCodFee, getFreeShippingThreshold, getShippingCost } from '../utils/adminStore';
 import { dbPlaceOrder, dbSaveOrder, dbValidateCoupon, type StoredCoupon, type PlaceOrderResult } from '../utils/supabaseStore';
 import { supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 
@@ -194,7 +194,7 @@ function OrderSummary({
 }) {
   const { items, subtotal } = useCart();
   const couponDiscount = calcDiscount(appliedCoupon, subtotal);
-  const shipping = subtotal >= 2000 ? 0 : 200;
+  const shipping = subtotal >= getFreeShippingThreshold() ? 0 : getShippingCost();
   const codFee = getCodFee();
   const total = subtotal - couponDiscount + shipping + codFee;
 
@@ -224,10 +224,10 @@ function OrderSummary({
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ margin: 0, fontWeight: 500, fontSize: '0.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.product.name}</p>
-                <p style={{ margin: '0.125rem 0 0', fontSize: '0.75rem', color: 'var(--luna-muted)' }}>{item.caseSize} · {item.strap}</p>
+                <p style={{ margin: '0.125rem 0 0', fontSize: '0.75rem', color: 'var(--luna-muted)' }}>{item.strap}</p>
               </div>
               <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: '0.875rem', fontWeight: 500, flexShrink: 0 }}>
-                {formatPrice(item.product.codPrice * item.quantity)}
+                {formatPrice((item.product.discountPercent > 0 ? Math.round(item.product.codPrice * (1 - item.product.discountPercent / 100)) : item.product.codPrice) * item.quantity)}
               </span>
             </div>
           ))}
@@ -431,7 +431,7 @@ export default function CheckoutPage() {
     const fullAddress = [shipping.street, shipping.area, shipping.city, shipping.postcode].filter(Boolean).join(', ');
 
     const orderDate = new Date().toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' });
-    const shippingCost = subtotal >= 2000 ? 0 : 200;
+    const shippingCost = subtotal >= getFreeShippingThreshold() ? 0 : getShippingCost();
     const codFeeAmt = getCodFee();
     const discount = appliedCoupon
       ? appliedCoupon.type === 'Percentage'
@@ -466,7 +466,7 @@ export default function CheckoutPage() {
           address:  fullAddress,
           city:     shipping.city,
           date:     orderDate,
-          items:    items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.codPrice })),
+          items:    items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.discountPercent > 0 ? Math.round(i.product.codPrice * (1 - i.product.discountPercent / 100)) : i.product.codPrice })),
           subtotal,
           shipping: shippingCost,
           codFee:   codFeeAmt,
@@ -479,7 +479,7 @@ export default function CheckoutPage() {
           cod_fee:  codFeeAmt,
           discount,
           total:    totalAmt,
-          items:    items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.codPrice })),
+          items:    items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.discountPercent > 0 ? Math.round(i.product.codPrice * (1 - i.product.discountPercent / 100)) : i.product.codPrice })),
         };
       } catch (fallbackErr) {
         setIsPlacing(false);

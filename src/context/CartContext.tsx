@@ -97,7 +97,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [state.items]);
 
   const totalItems = useMemo(() => state.items.reduce((s, i) => s + i.quantity, 0), [state.items]);
-  const subtotal = useMemo(() => state.items.reduce((s, i) => s + i.product.codPrice * i.quantity, 0), [state.items]);
+  const subtotal = useMemo(() => state.items.reduce((s, i) => {
+    const price = i.product.discountPercent > 0
+      ? Math.round(i.product.codPrice * (1 - i.product.discountPercent / 100))
+      : i.product.codPrice;
+    return s + price * i.quantity;
+  }, 0), [state.items]);
 
   const addToCart = useCallback((item: CartItem) => dispatch({ type: 'ADD', payload: item }), []);
   const removeFromCart = useCallback((productId: string, caseSize: CaseSize, strap: Strap) => dispatch({ type: 'REMOVE', productId, caseSize, strap }), []);

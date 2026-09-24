@@ -7,6 +7,7 @@ import { BRAND } from '../config';
 import { useState, useEffect } from 'react';
 import { IconChevronRight } from '../components/icons/Icons';
 import { getAbout } from '../utils/adminStore';
+import { supabaseUrl } from '../lib/supabase';
 
 function PageShell({ title, eyebrow, children, description }: { title: string; eyebrow?: string; children?: React.ReactNode; description?: string }) {
   useEffect(() => {
@@ -387,6 +388,8 @@ export function ContactUs() {
   const [subject, setSubject] = useState('Order Inquiry');
   const [message, setMessage] = useState('');
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
   useEffect(() => {
     document.title = 'Contact StarkBuy | WhatsApp & Email Support';
     let m = document.querySelector<HTMLMetaElement>('meta[name="description"]');
@@ -432,7 +435,7 @@ export function ContactUs() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               ),
               label: 'Location',
-              value: 'Lahore, Pakistan',
+              value: 'Rawalpindi, Pakistan',
               sub: 'Nationwide delivery',
               href: undefined,
               color: 'var(--luna-2)',
@@ -484,7 +487,21 @@ export function ContactUs() {
             <button onClick={() => { setSent(false); setName(''); setEmail(''); setMessage(''); }} className="btn btn-outline" style={{ fontSize: '0.875rem' }}>Send another</button>
           </div>
         ) : (
-          <form onSubmit={e => { e.preventDefault(); setSent(true); }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: 'var(--radius)', padding: '1.75rem 2rem' }}>
+          <form onSubmit={async e => {
+            e.preventDefault();
+            setSending(true); setSendError('');
+            try {
+              const html = `<h2>New Inquiry — ${subject}</h2><p><strong>From:</strong> ${name} (${email})</p><p><strong>Message:</strong><br/>${message.replace(/\n/g, '<br/>')}</p>`;
+              await fetch(`${supabaseUrl}/functions/v1/server/send-order-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ to: { email: 'starkbuypk@gmail.com', name: 'StarkBuy' }, subject: `[Contact] ${subject} from ${name}`, html }),
+              });
+              setSent(true);
+            } catch {
+              setSendError('Failed to send. Please contact us on WhatsApp.');
+            } finally { setSending(false); }
+          }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: 'var(--radius)', padding: '1.75rem 2rem' }}>
             <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.04em' }}>Send a Message</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div>
@@ -506,7 +523,8 @@ export function ContactUs() {
               <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--luna-muted)', fontWeight: 500, marginBottom: '0.375rem' }}>Message</label>
               <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="How can we help you?" required rows={5} style={{ ...inBase, resize: 'vertical' }} onFocus={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.40)'; }} onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,22,20,0.10)'; }} />
             </div>
-            <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>Send Message</button>
+            {sendError && <p style={{ color: '#C44830', fontSize: '0.8125rem', margin: 0 }}>{sendError}</p>}
+            <button type="submit" disabled={sending} className="btn btn-primary" style={{ alignSelf: 'flex-start', opacity: sending ? 0.7 : 1 }}>{sending ? 'Sending…' : 'Send Message'}</button>
           </form>
         )}
       </div>
