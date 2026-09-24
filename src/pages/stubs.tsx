@@ -654,11 +654,12 @@ export function ContactUs() {
             setSending(true); setSendError('');
             try {
               const html = `<h2>New Inquiry — ${subject}</h2><p><strong>From:</strong> ${name} (${email})</p><p><strong>Message:</strong><br/>${message.replace(/\n/g, '<br/>')}</p>`;
-              await fetch(`${supabaseUrl}/functions/v1/server/send-order-email`, {
+              const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseAnonKey}` },
                 body: JSON.stringify({ to: { email: 'starkbuypk@gmail.com', name: 'StarkBuy Admin' }, subject: `[Contact] ${subject} from ${name}`, html }),
               });
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
               setSent(true);
             } catch {
               setSendError('Failed to send. Please contact us on WhatsApp.');

@@ -24,7 +24,7 @@ function esc(s: string): string {
 /* ── Send email via Supabase Edge Function (Hostinger SMTP) ── */
 async function sendOrderEmail(to: { email: string; name: string }, subject: string, html: string) {
   try {
-    await fetch(`${supabaseUrl}/functions/v1/server/send-order-email`, {
+    const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,6 +32,7 @@ async function sendOrderEmail(to: { email: string; name: string }, subject: stri
       },
       body: JSON.stringify({ to, subject, html }),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch {
     // best-effort; order already saved to Supabase
   }

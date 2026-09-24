@@ -222,6 +222,70 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
   );
 }
 
+/* ── Video player with poster + error handling ────────────────── */
+function VideoPlayer({ src, poster, videoRef, playing, onPlay }: {
+  src: string;
+  poster: string;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  playing: boolean;
+  onPlay: () => void;
+}) {
+  const [videoError, setVideoError] = useState(false);
+
+  return (
+    <div style={{ position: 'relative', minHeight: 320, background: '#000', borderRadius: 'inherit' }}>
+      {!videoError ? (
+        <>
+          <video
+            ref={videoRef}
+            src={src}
+            controls
+            playsInline
+            preload="metadata"
+            poster={poster}
+            onError={() => setVideoError(true)}
+            style={{
+              width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280,
+              display: 'block', background: '#000',
+              opacity: playing ? 1 : 0,
+              pointerEvents: playing ? 'auto' : 'none',
+              transition: 'opacity 200ms',
+            }}
+          />
+          {!playing && (
+            <div
+              onClick={onPlay}
+              role="button"
+              aria-label="Play video"
+              style={{ position: 'absolute', inset: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              {poster && (
+                <img
+                  src={poster}
+                  alt=""
+                  aria-hidden="true"
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.65 }}
+                />
+              )}
+              <div style={{ position: 'relative', zIndex: 1, width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 24px rgba(0,0,0,0.4)' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="#1A1614" style={{ marginLeft: 4 }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+              <p style={{ position: 'absolute', bottom: '1rem', left: 0, right: 0, textAlign: 'center', color: 'rgba(255,255,255,0.85)', fontSize: '0.8125rem', zIndex: 1, fontWeight: 500 }}>Tap to play video</p>
+            </div>
+          )}
+        </>
+      ) : (
+        /* Codec/load error — show poster with message */
+        <div style={{ position: 'relative', minHeight: 320, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+          {poster && <img src={poster} alt="" aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3 }} />}
+          <p style={{ position: 'relative', zIndex: 1, color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', textAlign: 'center', margin: 0 }}>Video unavailable in this browser</p>
+          <a href={src} target="_blank" rel="noopener noreferrer" style={{ position: 'relative', zIndex: 1, color: 'var(--luna-1)', fontSize: '0.8125rem', textDecoration: 'underline' }}>Open video ↗</a>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Main page ────────────────────────────────────────────────── */
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -239,15 +303,6 @@ export default function ProductDetail() {
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  // Programmatically play video when user clicks play — more reliable than autoPlay
-  useEffect(() => {
-    if (videoPlaying && videoRef.current) {
-      const v = videoRef.current;
-      const attempt = () => v.play().catch(() => {});
-      if (v.readyState >= 2) attempt();
-      else v.addEventListener('canplay', attempt, { once: true });
-    }
-  }, [videoPlaying]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [selectedStrap, setSelectedStrap] = useState<Strap>(() => product?.strapOptions[0] ?? 'Leather');
 
@@ -396,36 +451,16 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
           <div style={{ position: 'relative' }}>
             <div style={{ borderRadius: 'var(--radius)', overflow: 'hidden', background: activeMedia?.type === 'video' ? '#111' : '#EBEBEB', ...(activeMedia?.type === 'video' ? { minHeight: 320 } : { aspectRatio: '3/4' }) }}>
               {activeMedia?.type === 'video' ? (
-                videoPlaying ? (
-                  <video
-                    ref={videoRef}
-                    key={activeMedia.src}
-                    src={activeMedia.src}
-                    controls
-                    playsInline
-                    preload="auto"
-                    style={{ width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280, display: 'block', background: '#000' }}
-                    onLoadedMetadata={() => { videoRef.current?.play().catch(() => {}); }}
-                    onCanPlay={() => { videoRef.current?.play().catch(() => {}); }}
-                  />
-                ) : (
-                  <div
-                    onClick={() => setVideoPlaying(true)}
-                    style={{ position: 'relative', cursor: 'pointer', minHeight: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111' }}
-                  >
-                    {(product.gallery[0] ?? product.image) && (
-                      <img
-                        src={product.gallery[0] ?? product.image}
-                        alt={product.name}
-                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55 }}
-                      />
-                    )}
-                    <div style={{ position: 'relative', zIndex: 1, width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 24px rgba(0,0,0,0.35)', transition: 'transform 150ms' }}>
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="#1A1614" style={{ marginLeft: 4 }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    </div>
-                    <p style={{ position: 'absolute', bottom: '1rem', left: 0, right: 0, textAlign: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '0.8125rem', zIndex: 1 }}>Tap to play video</p>
-                  </div>
-                )
+                <VideoPlayer
+                  src={activeMedia.src}
+                  poster={product.gallery[0] ?? product.image ?? ''}
+                  videoRef={videoRef}
+                  playing={videoPlaying}
+                  onPlay={() => {
+                    setVideoPlaying(true);
+                    videoRef.current?.play().catch(() => {});
+                  }}
+                />
               ) : (
                 <img
                   src={activeMedia?.src ?? product.image}
