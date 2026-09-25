@@ -4,7 +4,7 @@ import { formatPrice } from '../data/products';
 import { ProductCard } from '../components/ProductCard';
 import { useWishlist } from '../context/WishlistContext';
 import { BRAND } from '../config';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAllProducts } from '../hooks/useStoreData';
 import { getAbout } from '../utils/adminStore';
 import { supabaseUrl, supabaseAnonKey } from '../lib/supabase';
@@ -79,26 +79,47 @@ export function TrackOrder() {
   const [loading, setLoading] = useState(false);
   const [order, setOrder] = useState<StoredOrder | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  // Keep the last successful lookup params so polling can re-fetch
+  const lastQuery = useRef<{ id: string; contact: string } | null>(null);
+
+  async function fetchOrder(id: string, contact: string, silent = false) {
+    if (!silent) setLoading(true);
+    const result = await dbTrackOrder(id, contact);
+    if (!silent) setLoading(false);
+    if (result) {
+      setOrder(result);
+      setLastRefreshed(new Date());
+      setNotFound(false);
+    } else if (!silent) {
+      setNotFound(true);
+    }
+    return result;
+  }
 
   async function handleTrack() {
     if (!orderId.trim() || !contact.trim()) return;
-    setLoading(true);
     setNotFound(false);
     setOrder(null);
-    const result = await dbTrackOrder(orderId, contact);
-    setLoading(false);
-    if (result) {
-      setOrder(result);
-    } else {
-      setNotFound(true);
-    }
+    lastQuery.current = { id: orderId.trim(), contact: contact.trim() };
+    await fetchOrder(orderId.trim(), contact.trim());
   }
+
+  // Poll every 30s while an order is displayed so status updates reach the customer
+  useEffect(() => {
+    if (!order || !lastQuery.current) return;
+    const { id, contact: c } = lastQuery.current;
+    const interval = setInterval(() => fetchOrder(id, c, true), 30_000);
+    return () => clearInterval(interval);
+  }, [!!order]);
 
   function reset() {
     setOrder(null);
     setNotFound(false);
     setOrderId('');
     setContact('');
+    lastQuery.current = null;
+    setLastRefreshed(null);
   }
 
   const inputStyle: React.CSSProperties = {
@@ -161,17 +182,31 @@ export function TrackOrder() {
                 <p style={{ fontWeight: 700, margin: '0.125rem 0 0', fontVariantNumeric: 'tabular-nums', fontSize: '1.0625rem' }}>{order.id}</p>
                 <p style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)', margin: '0.25rem 0 0' }}>{order.name} · {order.city}</p>
               </div>
-              <span style={{
-                padding: '0.275rem 0.75rem',
-                borderRadius: 999,
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase' as const,
-                ...statusBadgeStyle(order.status),
-              }}>
-                {statusBadgeLabel(order.status)}
-              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                <span style={{
+                  padding: '0.275rem 0.75rem',
+                  borderRadius: 999,
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase' as const,
+                  ...statusBadgeStyle(order.status),
+                }}>
+                  {statusBadgeLabel(order.status)}
+                </span>
+                <button
+                  onClick={() => lastQuery.current && fetchOrder(lastQuery.current.id, lastQuery.current.contact, false)}
+                  disabled={loading}
+                  style={{ background: 'none', border: 'none', color: 'var(--luna-1)', fontSize: '0.75rem', cursor: loading ? 'wait' : 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif' }}
+                >
+                  {loading ? 'Refreshing…' : '↻ Refresh status'}
+                </button>
+                {lastRefreshed && (
+                  <p style={{ fontSize: '0.6875rem', color: 'var(--luna-muted)', margin: 0 }}>
+                    Updated {lastRefreshed.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Timeline */}
