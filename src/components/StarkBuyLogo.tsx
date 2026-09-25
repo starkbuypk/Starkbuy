@@ -16,7 +16,7 @@ export function StarkBuyLogo({ height = 36 }: { height?: number }) {
         overflow: 'hidden',
       }}>
         <img
-          src="/brand-logo.png"
+          src="https://yfgxtattyuoovrriirtf.supabase.co/storage/v1/object/public/product-images/brand/brand_logo.png"
           alt="StarkBuy"
           width={Math.round(iconSize * 0.88)}
           height={Math.round(iconSize * 0.88)}
