@@ -11,6 +11,8 @@ import {
   getAbout, saveAbout, type AboutContent,
   getFreeShippingThreshold, saveFreeShippingThreshold,
   getShippingCost, saveShippingCost,
+  type Testimonial, DEFAULT_TESTIMONIALS,
+  type BusinessHours, DEFAULT_BUSINESS_HOURS,
 } from '../utils/adminStore';
 import {
   dbGetOrders, dbUpdateOrderStatus, dbDeleteOrder, dbClearOrders, type StoredOrder,
@@ -22,7 +24,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from '../utils/toast';
-import { EV_PRODUCTS, EV_SLIDES, EV_CATEGORIES } from '../hooks/useStoreData';
+import { EV_PRODUCTS, EV_SLIDES, EV_CATEGORIES, EV_TESTIMONIALS, EV_HOURS } from '../hooks/useStoreData';
 
 function dispatch(ev: string) { window.dispatchEvent(new CustomEvent(ev)); }
 
@@ -92,7 +94,7 @@ function AdminSkeleton() {
 }
 
 /* ── Types ───────────────────────────────────────────────────── */
-type Section = 'analytics' | 'products' | 'orders' | 'coupons' | 'customers' | 'loyalty' | 'content' | 'about' | 'audit' | 'settings';
+type Section = 'analytics' | 'products' | 'orders' | 'coupons' | 'customers' | 'loyalty' | 'content' | 'about' | 'testimonials' | 'hours' | 'audit' | 'settings';
 
 /* ── Constants ────────────────────────────────────────────────── */
 const ALL_CATEGORIES: WatchCategory[] = ['Analog', 'Chronograph', 'Sports', 'A+ Replica', 'Automatic', 'Sale', 'Smart', 'Luxury'];
@@ -1562,6 +1564,145 @@ function AboutPanel() {
   );
 }
 
+/* ── TestimonialsPanel ────────────────────────────────────────── */
+function TestimonialsPanel() {
+  const [items, setItems] = useState<Testimonial[]>([]);
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    dbGetConfig<Testimonial[]>('testimonials').then(data => {
+      setItems(data ?? DEFAULT_TESTIMONIALS);
+      setLoading(false);
+    });
+  }, []);
+
+  function addRow() {
+    setItems(prev => [...prev, { name: '', city: '', text: '', rating: 5, watch: '' }]);
+    setSaved(false);
+  }
+
+  function removeRow(i: number) {
+    setItems(prev => prev.filter((_, idx) => idx !== i));
+    setSaved(false);
+  }
+
+  function setField(i: number, field: keyof Testimonial, val: string | number) {
+    setItems(prev => prev.map((r, idx) => idx === i ? { ...r, [field]: val } : r));
+    setSaved(false);
+  }
+
+  async function handleSave() {
+    await dbSetConfig('testimonials', items);
+    dispatch(EV_TESTIMONIALS);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  }
+
+  if (loading) return <p style={{ color: 'var(--luna-muted)', fontSize: '0.875rem' }}>Loading…</p>;
+
+  return (
+    <div>
+      <SectionHeader title="Testimonials" eyebrow="Customer reviews" action={{ label: saved ? '✓ Saved' : 'Save Changes', onClick: handleSave }} />
+      <p style={{ color: 'var(--luna-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Add customer reviews to display on the homepage. Leave empty to hide the testimonials section.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 760 }}>
+        {items.map((item, i) => (
+          <div key={i} style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.09)', borderRadius: '0.75rem', padding: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
+              <p style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 600, color: 'var(--luna-muted)' }}>Review #{i + 1}</p>
+              <button onClick={() => removeRow(i)} style={{ background: 'none', border: 'none', color: '#d93025', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 500 }}>Remove</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              <FieldInput label="Customer name" value={item.name} onChange={v => setField(i, 'name', v)} placeholder="Ahmed Raza" />
+              <FieldInput label="City" value={item.city} onChange={v => setField(i, 'city', v)} placeholder="Lahore" />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              <FieldInput label="Watch purchased" value={item.watch} onChange={v => setField(i, 'watch', v)} placeholder="Rolex Submariner" />
+              <div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', fontWeight: 500, marginBottom: '0.375rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Rating</p>
+                <select value={item.rating} onChange={e => setField(i, 'rating', Number(e.target.value))} style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(26,22,20,0.15)', background: 'white', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9375rem', color: 'var(--luna-fg)' }}>
+                  {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r} ★</option>)}
+                </select>
+              </div>
+            </div>
+            <FieldTextarea label="Review text" value={item.text} onChange={v => setField(i, 'text', v)} rows={2} />
+          </div>
+        ))}
+        <button onClick={addRow} style={{ alignSelf: 'flex-start', padding: '0.5rem 1.25rem', background: 'transparent', border: '1.5px dashed rgba(26,22,20,0.3)', borderRadius: '0.625rem', color: 'var(--luna-fg)', fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+          + Add Review
+        </button>
+        {items.length > 0 && (
+          <button onClick={handleSave} style={{ alignSelf: 'flex-start', padding: '0.625rem 1.5rem', background: saved ? 'rgba(134,239,172,0.15)' : 'var(--luna-1)', border: saved ? '1px solid rgba(134,239,172,0.3)' : 'none', borderRadius: 'var(--radius)', color: saved ? '#3A7A38' : 'var(--luna-5)', fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', transition: 'all 200ms' }}>
+            {saved ? '✓ Saved' : 'Save Changes'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── BusinessHoursPanel ───────────────────────────────────────── */
+function BusinessHoursPanel() {
+  const [items, setItems] = useState<BusinessHours[]>([]);
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    dbGetConfig<BusinessHours[]>('business_hours').then(data => {
+      setItems(data ?? DEFAULT_BUSINESS_HOURS);
+      setLoading(false);
+    });
+  }, []);
+
+  function addRow() {
+    setItems(prev => [...prev, { days: '', hours: '' }]);
+    setSaved(false);
+  }
+
+  function removeRow(i: number) {
+    setItems(prev => prev.filter((_, idx) => idx !== i));
+    setSaved(false);
+  }
+
+  function setField(i: number, field: keyof BusinessHours, val: string) {
+    setItems(prev => prev.map((r, idx) => idx === i ? { ...r, [field]: val } : r));
+    setSaved(false);
+  }
+
+  async function handleSave() {
+    await dbSetConfig('business_hours', items);
+    dispatch(EV_HOURS);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  }
+
+  if (loading) return <p style={{ color: 'var(--luna-muted)', fontSize: '0.875rem' }}>Loading…</p>;
+
+  return (
+    <div>
+      <SectionHeader title="Business Hours" eyebrow="Contact page" action={{ label: saved ? '✓ Saved' : 'Save Changes', onClick: handleSave }} />
+      <p style={{ color: 'var(--luna-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Set your opening hours shown on the Contact page.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: 600 }}>
+        {items.map((item, i) => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.75rem', alignItems: 'end', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.09)', borderRadius: '0.625rem', padding: '0.875rem' }}>
+            <FieldInput label="Days" value={item.days} onChange={v => setField(i, 'days', v)} placeholder="Mon – Sat" />
+            <FieldInput label="Hours" value={item.hours} onChange={v => setField(i, 'hours', v)} placeholder="10:00 AM – 10:00 PM" />
+            <button onClick={() => removeRow(i)} style={{ background: 'none', border: '1px solid rgba(217,48,37,0.3)', borderRadius: '0.5rem', color: '#d93025', cursor: 'pointer', fontSize: '0.875rem', padding: '0.5rem 0.75rem', height: 40, alignSelf: 'flex-end', fontFamily: 'DM Sans, sans-serif' }}>✕</button>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+          <button onClick={addRow} style={{ padding: '0.5rem 1.25rem', background: 'transparent', border: '1.5px dashed rgba(26,22,20,0.3)', borderRadius: '0.625rem', color: 'var(--luna-fg)', fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+            + Add Row
+          </button>
+          <button onClick={handleSave} style={{ padding: '0.625rem 1.5rem', background: saved ? 'rgba(134,239,172,0.15)' : 'var(--luna-1)', border: saved ? '1px solid rgba(134,239,172,0.3)' : 'none', borderRadius: 'var(--radius)', color: saved ? '#3A7A38' : 'var(--luna-5)', fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', transition: 'all 200ms' }}>
+            {saved ? '✓ Saved' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── SectionHeader ────────────────────────────────────────────── */
 function SectionHeader({ title, eyebrow, action }: { title: string; eyebrow?: string; action?: { label: string; onClick: () => void } }) {
   return (
@@ -1591,6 +1732,8 @@ const navItems: { id: Section; label: string; icon: string }[] = [
   { id: 'loyalty', label: 'Loyalty', icon: '★' },
   { id: 'content', label: 'Content', icon: '◫' },
   { id: 'about', label: 'About Page', icon: '✦' },
+  { id: 'testimonials', label: 'Testimonials', icon: '◈' },
+  { id: 'hours', label: 'Business Hours', icon: '◷' },
   { id: 'audit', label: 'Audit Log', icon: '⏱' },
   { id: 'settings', label: 'Settings', icon: '⚙' },
 ];
@@ -1609,6 +1752,8 @@ export default function Admin() {
     loyalty: <Loyalty />,
     content: <Content />,
     about: <AboutPanel />,
+    testimonials: <TestimonialsPanel />,
+    hours: <BusinessHoursPanel />,
     audit: <AuditLog />,
     settings: <Settings />,
   };

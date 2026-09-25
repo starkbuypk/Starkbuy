@@ -4,6 +4,10 @@ import { DEFAULT_SLIDES, type HeroSlide } from '../data/slides';
 import {
   type CategoryConfig,
   DEFAULT_CATEGORIES,
+  type Testimonial,
+  DEFAULT_TESTIMONIALS,
+  type BusinessHours,
+  DEFAULT_BUSINESS_HOURS,
 } from '../utils/adminStore';
 import { dbGetProducts, dbGetConfig } from '../utils/supabaseStore';
 
@@ -90,4 +94,35 @@ export function useShippingConfig() {
   }, []);
 
   return { threshold, cost };
+}
+
+export const EV_TESTIMONIALS = 'sb-testimonials-updated';
+export const EV_HOURS = 'sb-hours-updated';
+
+export function useTestimonials(): Testimonial[] {
+  const [items, setItems] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS);
+  async function refresh() {
+    const data = await dbGetConfig<Testimonial[]>('testimonials');
+    setItems(data ?? DEFAULT_TESTIMONIALS);
+  }
+  useEffect(() => {
+    refresh();
+    window.addEventListener(EV_TESTIMONIALS, refresh);
+    return () => window.removeEventListener(EV_TESTIMONIALS, refresh);
+  }, []);
+  return items;
+}
+
+export function useBusinessHours(): BusinessHours[] {
+  const [items, setItems] = useState<BusinessHours[]>(DEFAULT_BUSINESS_HOURS);
+  async function refresh() {
+    const data = await dbGetConfig<BusinessHours[]>('business_hours');
+    setItems(data ?? DEFAULT_BUSINESS_HOURS);
+  }
+  useEffect(() => {
+    refresh();
+    window.addEventListener(EV_HOURS, refresh);
+    return () => window.removeEventListener(EV_HOURS, refresh);
+  }, []);
+  return items;
 }

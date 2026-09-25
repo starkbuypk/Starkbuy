@@ -95,18 +95,18 @@ export const ProductCard = memo(function ProductCard({ product }: Props) {
             </div>
           )}
 
-          {/* Wishlist btn */}
+          {/* Wishlist btn — reduced size so it doesn't compete with product image */}
           <button
             onClick={handleWishlist}
             aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             style={{
               position: 'absolute',
-              top: '0.75rem',
-              right: '0.75rem',
-              width: 36,
-              height: 36,
+              top: '0.625rem',
+              right: '0.625rem',
+              width: 30,
+              height: 30,
               borderRadius: '50%',
-              background: 'rgba(255,255,255,0.92)',
+              background: wishlisted ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.75)',
               border: '1px solid rgba(0,0,0,0.08)',
               display: 'flex',
               alignItems: 'center',
@@ -116,43 +116,16 @@ export const ProductCard = memo(function ProductCard({ product }: Props) {
               transition: 'color 150ms, background 150ms',
             }}
           >
-            <IconHeart size={15} filled={wishlisted} />
+            <IconHeart size={13} filled={wishlisted} />
           </button>
-
-          {/* Add to bag — hover overlay */}
-          {product.inStock && (
-            <button
-              onClick={handleAddToCart}
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                background: 'rgba(255,255,255,0.96)',
-                backdropFilter: 'blur(8px)',
-                color: 'var(--luna-fg)',
-                border: 'none',
-                borderTop: '1px solid rgba(0,0,0,0.07)',
-                padding: '0.75rem',
-                fontSize: '0.8125rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase' as const,
-                transform: 'translateY(100%)',
-                transition: 'transform 200ms var(--ease-spring)',
-                fontFamily: 'DM Sans, sans-serif',
-              }}
-              className="add-to-bag-btn"
-            >
-              Add to Bag
-            </button>
-          )}
         </div>
 
-        {/* Info */}
-        <div style={{ padding: '0.875rem 1rem 1rem' }}>
-          <div style={{ marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+        {/* Info — name first, then rating, then price, then Add to Bag */}
+        <div style={{ padding: '0.875rem 1rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          <h3 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {product.name}
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
             <span style={{ color: '#f59e0b', display: 'flex' }}>
               <IconStar size={12} />
             </span>
@@ -160,10 +133,7 @@ export const ProductCard = memo(function ProductCard({ product }: Props) {
               {product.rating} ({product.reviewCount})
             </span>
           </div>
-          <h3 style={{ margin: '0 0 0.375rem', fontSize: '0.9375rem', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {product.name}
-          </h3>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.625rem' }}>
             <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: '0.9375rem', color: salePrice ? 'var(--luna-1)' : 'var(--luna-fg)' }}>
               {formatPrice(salePrice ?? product.codPrice)}
             </span>
@@ -173,14 +143,33 @@ export const ProductCard = memo(function ProductCard({ product }: Props) {
               </span>
             )}
           </div>
+          {product.inStock && (
+            <button
+              onClick={handleAddToCart}
+              className="add-to-bag-btn"
+              style={{
+                width: '100%',
+                background: 'var(--luna-fg)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '0.4375rem',
+                padding: '0.5625rem 1rem',
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase' as const,
+                fontFamily: 'DM Sans, sans-serif',
+                transition: 'background 150ms, transform 100ms',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--luna-1)'; e.currentTarget.style.color = '#111'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--luna-fg)'; e.currentTarget.style.color = '#FFF'; }}
+            >
+              Add to Bag
+            </button>
+          )}
         </div>
       </article>
-
-      <style>{`
-        article.product-card:hover .add-to-bag-btn {
-          transform: translateY(0) !important;
-        }
-      `}</style>
     </Link>
   );
 });

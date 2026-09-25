@@ -33,16 +33,6 @@ export interface Product {
   waterResistance: string;
 }
 
-export const products: Product[] = [];
-
-export const featuredProducts = products.filter(p => p.featured);
-export const newArrivals = products.filter(p => p.newArrival);
-export const flashSaleProducts = products.filter(p => p.flashSale);
-
-export function getProductBySlug(slug: string): Product | undefined {
-  return products.find(p => p.slug === slug);
-}
-
 export function formatPrice(pkr: number): string {
   return `Rs. ${pkr.toLocaleString('en-PK')}`;
 }

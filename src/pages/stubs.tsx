@@ -1,14 +1,15 @@
 /* Functional stub pages — each at its own route */
 import { Link } from 'react-router-dom';
-import { products, formatPrice } from '../data/products';
+import { formatPrice } from '../data/products';
 import { ProductCard } from '../components/ProductCard';
 import { useWishlist } from '../context/WishlistContext';
 import { BRAND } from '../config';
 import { useState, useEffect } from 'react';
-import { IconChevronRight } from '../components/icons/Icons';
+import { useAllProducts } from '../hooks/useStoreData';
 import { getAbout } from '../utils/adminStore';
 import { supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { dbTrackOrder, type StoredOrder } from '../utils/supabaseStore';
+import { useBusinessHours } from '../hooks/useStoreData';
 
 function PageShell({ title, eyebrow, children, description }: { title: string; eyebrow?: string; children?: React.ReactNode; description?: string }) {
   useEffect(() => {
@@ -31,7 +32,8 @@ function PageShell({ title, eyebrow, children, description }: { title: string; e
 /* Wishlist */
 export function Wishlist() {
   const { ids } = useWishlist();
-  const wishlistProducts = products.filter(p => ids.has(p.id));
+  const allProducts = useAllProducts();
+  const wishlistProducts = allProducts.filter(p => ids.has(p.id));
   return (
     <PageShell title="Your Wishlist" eyebrow={`${wishlistProducts.length} item${wishlistProducts.length !== 1 ? 's' : ''}`}>
       {wishlistProducts.length === 0 ? (
@@ -43,84 +45,6 @@ export function Wishlist() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
           {wishlistProducts.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
-      )}
-    </PageShell>
-  );
-}
-
-/* Checkout */
-export function Checkout() {
-  const [step, setStep] = useState(0);
-  const steps = ['Contact', 'Shipping', 'Payment', 'Confirmation'];
-  return (
-    <PageShell title="Checkout">
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        {steps.map((s, i) => (
-          <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.8125rem', fontWeight: 500, background: i === step ? 'var(--luna-1)' : 'rgba(26,22,20,0.08)', color: i === step ? 'var(--luna-5)' : 'var(--luna-muted)' }}>{s}</span>
-            {i < steps.length - 1 && <IconChevronRight size={12} />}
-          </div>
-        ))}
-      </div>
-      {step < 3 ? (
-        <div style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: 'var(--radius)', padding: '2rem', marginBottom: '1.5rem' }}>
-          <p style={{ color: 'var(--luna-muted)', marginBottom: '1.5rem', fontSize: '0.9375rem' }}>
-            {step === 0 && 'Enter your contact details to receive order updates.'}
-            {step === 1 && 'Enter your shipping address for delivery.'}
-            {step === 2 && 'Choose your payment method. Pay now to save 10%.'}
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 480 }}>
-            {step === 0 && (
-              <>
-                <input placeholder="Full name" style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem' }} />
-                <input placeholder="Phone number" type="tel" style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem' }} />
-                <input placeholder="Email (optional)" type="email" style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem' }} />
-              </>
-            )}
-            {step === 1 && (
-              <>
-                <input placeholder="Street address" style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem' }} />
-                <input placeholder="Area / Sector" style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem' }} />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <input placeholder="City" style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem' }} />
-                  <input placeholder="Postal code" style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem' }} />
-                </div>
-              </>
-            )}
-            {step === 2 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {[
-                  { label: 'Cash on Delivery', sub: 'Pay when you receive your order', badge: null },
-                  { label: 'JazzCash / EasyPaisa', sub: `Save ${BRAND.prepaidDiscount}% — pay now and save instantly`, badge: `${BRAND.prepaidDiscount}% OFF` },
-                  { label: 'Bank Transfer', sub: `Save ${BRAND.prepaidDiscount}% — transfer to our account`, badge: `${BRAND.prepaidDiscount}% OFF` },
-                ].map(method => (
-                  <label key={method.label} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: '#FFFFFF', border: '1px solid rgba(26,22,20,0.09)', borderRadius: 'var(--radius)', cursor: 'pointer' }}>
-                    <input type="radio" name="payment" style={{ accentColor: 'var(--luna-1)', width: 16, height: 16 }} defaultChecked={method.label === 'Cash on Delivery'} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 500, fontSize: '0.9375rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {method.label}
-                        {method.badge && <span className="badge badge-accent">{method.badge}</span>}
-                      </div>
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)', marginTop: '0.125rem' }}>{method.sub}</div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-          <div style={{ width: 64, height: 64, background: 'rgba(26,22,20,0.09)', border: '1px solid rgba(201,168,76,0.4)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', fontSize: '1.5rem' }}>✓</div>
-          <h2 className="font-display" style={{ fontSize: '1.75rem', fontWeight: 600, letterSpacing: '-0.02em', marginBottom: '0.75rem' }}>Order Confirmed</h2>
-          <p style={{ color: 'var(--luna-muted)', marginBottom: '2rem' }}>Your order has been placed. You'll receive a confirmation shortly.</p>
-          <Link to="/" className="btn btn-primary">Continue Shopping</Link>
-        </div>
-      )}
-      {step < 3 && (
-        <button className="btn btn-primary" onClick={() => setStep(s => Math.min(s + 1, 3))}>
-          {step === 2 ? 'Place Order' : 'Continue'}
-        </button>
       )}
     </PageShell>
   );
@@ -340,29 +264,6 @@ export function TrackOrder() {
 }
 
 /* Account */
-export function Account() {
-  return (
-    <PageShell title="My Account" eyebrow="Account">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-        {[
-          { label: 'Order History', to: '/account', sub: 'View past and current orders' },
-          { label: 'Address Book', to: '/account', sub: 'Manage delivery addresses' },
-          { label: 'Loyalty Rewards', to: '/account', sub: 'Check your points balance' },
-          { label: 'Privacy Center', to: '/account', sub: 'Manage your data' },
-        ].map(item => (
-          <div key={item.label} style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: 'var(--radius)', padding: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: 600 }}>{item.label}</h3>
-            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--luna-muted)' }}>{item.sub}</p>
-          </div>
-        ))}
-      </div>
-      <p style={{ marginTop: '2rem', color: 'var(--luna-muted)', fontSize: '0.875rem' }}>
-        Not signed in? <Link to="/login" style={{ color: 'var(--luna-1)', textDecoration: 'none' }}>Log in to your account</Link>
-      </p>
-    </PageShell>
-  );
-}
-
 /* About */
 export function About() {
   const about = getAbout();
@@ -486,22 +387,6 @@ function AuthShell({ title, children }: { title: string; children: React.ReactNo
 
 const inputStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem', width: '100%' };
 
-export function Login() {
-  return (
-    <AuthShell title="Sign in">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <input placeholder="Email address" type="email" style={inputStyle} />
-        <input placeholder="Password" type="password" style={inputStyle} />
-        <Link to="/" className="btn btn-primary" style={{ display: 'flex' }}>Sign in</Link>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
-          <Link to="/forgot-password" style={{ color: 'var(--luna-muted)', textDecoration: 'none' }}>Forgot password?</Link>
-          <Link to="/register" style={{ color: 'var(--luna-1)', textDecoration: 'none' }}>Create account</Link>
-        </div>
-      </div>
-    </AuthShell>
-  );
-}
-
 export function Register() {
   return (
     <AuthShell title="Create account">
@@ -545,6 +430,7 @@ function InfoPage({ title, eyebrow, content }: { title: string; eyebrow: string;
 }
 
 export function ContactUs() {
+  const businessHours = useBusinessHours();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('Order Inquiry');
@@ -627,8 +513,7 @@ export function ContactUs() {
           <div style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.06)', borderRadius: 'var(--radius)' }}>
             <p style={{ margin: '0 0 0.875rem', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)' }}>Support Hours</p>
             {[
-              { days: 'Mon – Sat', hours: '10:00 AM – 10:00 PM' },
-              { days: 'Sunday', hours: '12:00 PM – 8:00 PM' },
+              ...businessHours,
             ].map(h => (
               <div key={h.days} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid rgba(26,22,20,0.05)' }}>
                 <span style={{ fontSize: '0.875rem', color: 'var(--luna-muted)' }}>{h.days}</span>

@@ -202,8 +202,8 @@ export function Footer() {
               Premium timepieces delivered across Pakistan. Cash on delivery at your doorstep.
             </p>
 
-            {/* Social icons */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            {/* Social icons — slight negative margin aligns circle left edge with contact text below */}
+            <div style={{ display: 'flex', gap: '0.625rem', marginBottom: '1.5rem', marginLeft: '-3px' }}>
               {[
                 { href: 'https://www.instagram.com/starkbuypk', icon: <IconInstagram />, label: 'Instagram' },
                 { href: 'https://www.facebook.com/share/1GocVvCj5s/?mibextid=wwXIfr', icon: <IconFacebook />, label: 'Facebook' },
@@ -238,7 +238,7 @@ export function Footer() {
               <a
                 href={`https://wa.me/${BRAND.whatsapp.replace(/\D/g, '')}`}
                 target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--luna-muted)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 150ms' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--luna-muted)', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 150ms' }}
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--luna-fg)'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--luna-muted)'; }}
               >
@@ -247,7 +247,7 @@ export function Footer() {
               </a>
               <a
                 href={`mailto:${BRAND.email}`}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--luna-muted)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 150ms' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--luna-muted)', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 150ms' }}
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--luna-fg)'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--luna-muted)'; }}
               >
@@ -281,28 +281,31 @@ export function Footer() {
           ))}
         </div>
 
-        {/* ── Bottom bar ────────────────────────────────────────── */}
+        {/* ── Bottom bar — uniform gap, no manual separator spans ── */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '1.25rem',
-          padding: '1.5rem 0',
           flexWrap: 'wrap',
+          padding: '1.5rem 0',
+          gap: '0',
         }}>
-          <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--luna-muted)' }}>
-            © {new Date().getFullYear()} {BRAND.name}. All rights reserved.
-          </p>
-          <span style={{ color: 'rgba(0,0,0,0.12)', fontSize: '0.75rem' }}>·</span>
-          <Link to="/legal/privacy-policy" style={{ fontSize: '0.875rem', color: 'var(--luna-muted)', textDecoration: 'none', transition: 'color 150ms' }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--luna-fg)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--luna-muted)'; }}
-          >Privacy Policy</Link>
-          <span style={{ color: 'rgba(0,0,0,0.12)', fontSize: '0.75rem' }}>·</span>
-          <Link to="/legal/terms-of-service" style={{ fontSize: '0.875rem', color: 'var(--luna-muted)', textDecoration: 'none', transition: 'color 150ms' }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--luna-fg)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--luna-muted)'; }}
-          >Terms of Service</Link>
+          {[
+            { type: 'text', content: `© ${new Date().getFullYear()} ${BRAND.name}. All rights reserved.` },
+            { type: 'link', label: 'Privacy Policy', to: '/legal/privacy-policy' },
+            { type: 'link', label: 'Terms of Service', to: '/legal/terms-of-service' },
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
+              {i > 0 && <span aria-hidden="true" style={{ margin: '0 0.75rem', color: 'rgba(0,0,0,0.15)', fontSize: '0.75rem', lineHeight: 1 }}>·</span>}
+              {item.type === 'text'
+                ? <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--luna-muted)' }}>{item.content}</p>
+                : <Link to={item.to!} style={{ fontSize: '0.875rem', color: 'var(--luna-muted)', textDecoration: 'none', transition: 'color 150ms' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--luna-fg)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--luna-muted)'; }}
+                  >{item.label}</Link>
+              }
+            </div>
+          ))}
         </div>
 
       </div>

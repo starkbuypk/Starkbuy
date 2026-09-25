@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 import { recordView } from '../utils/recentlyViewed';
-import { getProductBySlug, formatPrice } from '../data/products';
+import { formatPrice } from '../data/products';
 import type { Strap } from '../data/products';
 import { useAllProducts } from '../hooks/useStoreData';
 import { ProductCard } from '../components/ProductCard';
@@ -222,7 +222,7 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
   );
 }
 
-/* ── Video player with poster + error handling ────────────────── */
+/* ── Video player — click-to-play with poster thumbnail ────────── */
 function VideoPlayer({ src, poster, videoRef, playing, onPlay }: {
   src: string;
   poster: string;
@@ -230,56 +230,61 @@ function VideoPlayer({ src, poster, videoRef, playing, onPlay }: {
   playing: boolean;
   onPlay: () => void;
 }) {
-  const [videoError, setVideoError] = useState(false);
-
   return (
     <div style={{ position: 'relative', minHeight: 320, background: '#000', borderRadius: 'inherit' }}>
-      {!videoError ? (
-        <>
-          <video
-            ref={videoRef}
-            src={src}
-            controls
-            playsInline
-            preload="metadata"
-            poster={poster}
-            onError={() => setVideoError(true)}
-            style={{
-              width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280,
-              display: 'block', background: '#000',
-              opacity: playing ? 1 : 0,
-              pointerEvents: playing ? 'auto' : 'none',
-              transition: 'opacity 200ms',
-            }}
-          />
-          {!playing && (
-            <div
-              onClick={onPlay}
-              role="button"
-              aria-label="Play video"
-              style={{ position: 'absolute', inset: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              {poster && (
-                <img
-                  src={poster}
-                  alt=""
-                  aria-hidden="true"
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.65 }}
-                />
-              )}
-              <div style={{ position: 'relative', zIndex: 1, width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 24px rgba(0,0,0,0.4)' }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="#1A1614" style={{ marginLeft: 4 }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              </div>
-              <p style={{ position: 'absolute', bottom: '1rem', left: 0, right: 0, textAlign: 'center', color: 'rgba(255,255,255,0.85)', fontSize: '0.8125rem', zIndex: 1, fontWeight: 500 }}>Tap to play video</p>
-            </div>
+      {/* Always keep video in DOM so ref is valid for synchronous .play() in click handler */}
+      <video
+        ref={videoRef}
+        src={src}
+        controls
+        playsInline
+        preload="none"
+        poster={poster || undefined}
+        style={{
+          width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280,
+          display: 'block', background: '#000',
+          opacity: playing ? 1 : 0,
+          pointerEvents: playing ? 'auto' : 'none',
+          transition: 'opacity 180ms ease',
+        }}
+      />
+      {/* Overlay — visible only before user clicks play */}
+      {!playing && (
+        <div
+          onClick={onPlay}
+          role="button"
+          aria-label="Play video"
+          style={{
+            position: 'absolute', inset: 0, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {poster && (
+            <img
+              src={poster}
+              alt=""
+              aria-hidden="true"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }}
+            />
           )}
-        </>
-      ) : (
-        /* Codec/load error — show poster with message */
-        <div style={{ position: 'relative', minHeight: 320, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-          {poster && <img src={poster} alt="" aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3 }} />}
-          <p style={{ position: 'relative', zIndex: 1, color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', textAlign: 'center', margin: 0 }}>Video unavailable in this browser</p>
-          <a href={src} target="_blank" rel="noopener noreferrer" style={{ position: 'relative', zIndex: 1, color: 'var(--luna-1)', fontSize: '0.8125rem', textDecoration: 'underline' }}>Open video ↗</a>
+          <div style={{
+            position: 'relative', zIndex: 1, width: 72, height: 72,
+            borderRadius: '50%', background: 'rgba(255,255,255,0.92)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+            transition: 'transform 120ms ease',
+          }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#1A1614" style={{ marginLeft: 4 }}>
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+          </div>
+          <p style={{
+            position: 'absolute', bottom: '1rem', left: 0, right: 0,
+            textAlign: 'center', color: 'rgba(255,255,255,0.85)',
+            fontSize: '0.8125rem', zIndex: 1, fontWeight: 500, margin: 0,
+          }}>
+            Tap to play video
+          </p>
         </div>
       )}
     </div>
@@ -291,7 +296,7 @@ export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { threshold: freeShipThreshold } = useShippingConfig();
   const allProducts = useAllProducts();
-  const product = getProductBySlug(slug ?? '') ?? allProducts.find(p => p.slug === slug);
+  const product = allProducts.find(p => p.slug === slug);
   const navigate = useNavigate();
   const { addToCart, openCart } = useCart();
   const { toggle, has } = useWishlist();

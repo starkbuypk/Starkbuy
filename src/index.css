@@ -66,6 +66,24 @@ body {
   background: rgba(201, 168, 76, 0.5);
 }
 
+/* ── Type scale (≤10 steps) ────────────────────────────────────
+   --text-2xs  0.6875rem  ~10px  badges, eyebrows
+   --text-xs   0.75rem    ~11px  uppercase labels, captions
+   --text-sm   0.8125rem  ~12px  btn label, UI meta
+   --text-body 0.875rem   ~13px  secondary body, footer links
+   --text-md   0.9375rem  ~14px  primary body, product names
+   --text-lg   1.125rem   ~17px  lead copy, feature text
+   Display sizes: clamp(1.75rem…2.5rem), clamp(2.5rem…5rem)
+   ─────────────────────────────────────────────────────────── */
+:root {
+  --text-2xs: 0.6875rem;
+  --text-xs:  0.75rem;
+  --text-sm:  0.8125rem;
+  --text-body: 0.875rem;
+  --text-md:  0.9375rem;
+  --text-lg:  1.125rem;
+}
+
 /* Typography */
 .font-display {
   font-family: 'Cormorant Garamond', serif;
@@ -185,6 +203,18 @@ body {
   background: rgba(26, 26, 26, 0.06);
 }
 
+/* Outline variant for use on dark/hero backgrounds */
+.btn-outline-light {
+  background: rgba(255,255,255,0.10);
+  color: #FFFFFF;
+  border: 2px solid rgba(255,255,255,0.60);
+  backdrop-filter: blur(4px);
+}
+.btn-outline-light:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.90);
+}
+
 /* Surface */
 .surface {
   background: var(--luna-4);
@@ -280,34 +310,33 @@ body {
   animation: slideIn 500ms var(--ease-spring) forwards;
 }
 
-/* Badge */
+/* Badge — solid fills for legibility over product photography */
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.125rem 0.5rem;
+  padding: 0.1875rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
 }
 
 .badge-accent {
-  background: rgba(201, 168, 76, 0.12);
-  color: var(--luna-1);
-  border: 1px solid rgba(201, 168, 76, 0.28);
+  background: var(--luna-1);
+  color: #111111;
 }
 
 .badge-sale {
-  background: rgba(220, 80, 60, 0.12);
-  color: #E05A44;
-  border: 1px solid rgba(220, 80, 60, 0.28);
+  background: #D94030;
+  color: #FFFFFF;
 }
 
 .badge-new {
-  background: rgba(201, 168, 76, 0.1);
-  color: var(--luna-1);
-  border: 1px solid rgba(201, 168, 76, 0.22);
+  background: #1A1A1A;
+  color: #FFFFFF;
 }
 
 /* Product card */

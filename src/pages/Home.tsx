@@ -5,7 +5,7 @@ import { IconArrowRight, IconChevronLeft, IconChevronRight, IconTruck, IconShiel
 import { BRAND } from '../config';
 import { useShippingConfig } from '../hooks/useStoreData';
 import { getRecentIds } from '../utils/recentlyViewed';
-import { useAllProducts, useSlides, useCategories, useNewArrivals } from '../hooks/useStoreData';
+import { useAllProducts, useSlides, useCategories, useNewArrivals, useTestimonials } from '../hooks/useStoreData';
 import { useSEO } from '../hooks/useSEO';
 
 function HeroSlider() {
@@ -117,14 +117,14 @@ function HeroSlider() {
         >
           {slide.title}
         </h1>
-        <p style={{ fontSize: '1.0625rem', color: 'rgba(255,255,255,0.72)', margin: '0 0 2.5rem', maxWidth: 380 }}>{slide.sub}</p>
+        <p style={{ fontSize: '1.125rem', color: 'rgba(255,255,255,0.72)', margin: '0 0 2.5rem', maxWidth: 380 }}>{slide.sub}</p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <Link to={slide.ctaTo} className="btn btn-primary" style={{ gap: '0.5rem' }}>
             {slide.ctaLabel}
             <IconArrowRight />
           </Link>
           {slide.cta2Label && (
-            <Link to={slide.cta2To} className="btn btn-outline">
+            <Link to={slide.cta2To} className="btn btn-outline-light">
               {slide.cta2Label}
             </Link>
           )}
@@ -135,37 +135,39 @@ function HeroSlider() {
       <button
         onClick={prev}
         aria-label="Previous slide"
-        style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', zIndex: 3, width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.88)', border: '1px solid rgba(255,255,255,0.25)', color: '#1A1A1A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }}
+        style={{ position: 'absolute', left: '1.5rem', top: '50%', transform: 'translateY(-50%)', zIndex: 3, width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.88)', border: '1px solid rgba(255,255,255,0.25)', color: '#1A1A1A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }}
       >
         <IconChevronLeft size={14} />
       </button>
       <button
         onClick={next}
         aria-label="Next slide"
-        style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', zIndex: 3, width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.88)', border: '1px solid rgba(255,255,255,0.25)', color: '#1A1A1A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }}
+        style={{ position: 'absolute', right: '1.5rem', top: '50%', transform: 'translateY(-50%)', zIndex: 3, width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.88)', border: '1px solid rgba(255,255,255,0.25)', color: '#1A1A1A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }}
       >
         <IconChevronRight size={20} />
       </button>
 
-      {/* Dots */}
-      <div style={{ position: 'absolute', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)', zIndex: 3, display: 'flex', alignItems: 'center' }}>
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            aria-label={`Go to slide ${i + 1}`}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '1rem 0.375rem', display: 'flex', alignItems: 'center' }}
-          >
-            <span style={{
-              display: 'block',
-              width: i === current ? 24 : 8,
-              height: 8,
-              borderRadius: 4,
-              background: i === current ? 'var(--luna-1)' : 'rgba(255,255,255,0.35)',
-              transition: 'width 300ms var(--ease-spring), background 300ms',
-            }} />
-          </button>
-        ))}
+      {/* Dots — wrapped in a frosted pill for contrast on any image */}
+      <div style={{ position: 'absolute', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)', zIndex: 3 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', borderRadius: '2rem', padding: '0.5rem 0.875rem' }}>
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0.25rem', display: 'flex', alignItems: 'center' }}
+            >
+              <span style={{
+                display: 'block',
+                width: i === current ? 20 : 8,
+                height: 8,
+                borderRadius: 4,
+                background: i === current ? 'var(--luna-1)' : 'rgba(255,255,255,0.60)',
+                transition: 'width 300ms var(--ease-spring), background 300ms',
+              }} />
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -250,7 +252,7 @@ function CategoryStrip() {
   return (
     <section style={{ maxWidth: 1280, margin: '0 auto', padding: '2.5rem 1.25rem 0' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <p style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#111111' }}>Browse by category</p>
+        <p className="eyebrow" style={{ margin: 0 }}>Browse by category</p>
         <Link to="/collections" style={{ color: 'var(--luna-1)', fontSize: '0.875rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.375rem', fontWeight: 500 }}>
           View all <IconArrowRight size={14} />
         </Link>
@@ -371,7 +373,14 @@ function NewArrivals() {
           All new <IconArrowRight size={14} />
         </Link>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '1rem' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: newOnes.length < 4
+          ? `repeat(${Math.min(newOnes.length, 4)}, minmax(0, 220px))`
+          : 'repeat(auto-fill, minmax(190px, 1fr))',
+        gap: '1rem',
+        justifyContent: newOnes.length < 4 ? 'center' : undefined,
+      }}>
         {newOnes.map(p => <ProductCard key={p.id} product={p} />)}
       </div>
     </section>
@@ -380,11 +389,8 @@ function NewArrivals() {
 
 /* ── Testimonial ──────────────────────────────────────────────── */
 function Testimonial() {
-  const reviews = [
-    { name: 'Ahmed K.', city: 'Lahore', text: 'Ordered the Meridian Slim on a Friday evening. It arrived the next morning. The watch is exactly as pictured — the leather strap is genuinely premium.', rating: 5, watch: 'Meridian Slim' },
-    { name: 'Fatima R.', city: 'Karachi', text: 'I bought the Aurora Rose Gold as a gift. The packaging alone made her cry. Quality is exceptional for the price point. Will definitely order again.', rating: 5, watch: 'Aurora Rose Gold' },
-    { name: 'Usman T.', city: 'Islamabad', text: 'Third watch from StarkBuy. Never had an issue. COD is seamless, delivery is fast, and returns policy gave me confidence to try a new style.', rating: 5, watch: 'Commander Sport' },
-  ];
+  const reviews = useTestimonials();
+  if (reviews.length === 0) return null;
 
   return (
     <section style={{ maxWidth: 1280, margin: '0 auto', padding: '2.5rem 1.25rem 0' }}>

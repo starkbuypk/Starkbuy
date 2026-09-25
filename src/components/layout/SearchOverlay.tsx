@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { products } from '../../data/products';
 import { formatPrice } from '../../data/products';
+import type { Product } from '../../data/products';
+import { dbGetProducts } from '../../utils/supabaseStore';
 import { IconSearch, IconX } from '../icons/Icons';
 
 interface Props {
@@ -11,7 +12,12 @@ interface Props {
 
 export function SearchOverlay({ open, onClose }: Props) {
   const [query, setQuery] = useState('');
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    dbGetProducts().then(setAllProducts);
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -33,7 +39,7 @@ export function SearchOverlay({ open, onClose }: Props) {
   if (!open) return null;
 
   const results = query.trim()
-    ? products.filter(p =>
+    ? allProducts.filter(p =>
         p.name.toLowerCase().includes(query.toLowerCase()) ||
         p.category.toLowerCase().includes(query.toLowerCase())
       ).slice(0, 6)
@@ -128,7 +134,7 @@ export function SearchOverlay({ open, onClose }: Props) {
                 }}
               >
                 <img
-                  src={p.image + '&w=80'}
+                  src={p.image + (p.image.includes('?') ? '&w=80' : '?w=80')}
                   alt={p.name}
                   style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: '0.5rem', flexShrink: 0 }}
                   loading="lazy"
