@@ -3,13 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 import { formatPrice } from '../data/products';
 import type { WatchCategory, WatchGender } from '../data/products';
-import { useAllProducts } from '../hooks/useStoreData';
+import { useAllProducts, useCategories } from '../hooks/useStoreData';
 import { ProductCard } from '../components/ProductCard';
 import { IconChevronRight } from '../components/icons/Icons';
 import { useShippingConfig } from '../hooks/useStoreData';
 import { BRAND } from '../config';
-
-const CATEGORIES: WatchCategory[] = ['Analog', 'Chronograph', 'Sports', 'A+ Replica', 'Automatic', 'Luxury', 'Smart', 'Sale'];
 const GENDERS: WatchGender[] = ['Men', 'Women', 'Unisex'];
 const PAGE_SIZE = 12;
 
@@ -116,13 +114,22 @@ export default function Collections() {
   const { category } = useParams<{ category?: string }>();
   const { threshold: freeShipThreshold } = useShippingConfig();
   const products = useAllProducts();
+  const allCats = useCategories();
+  // Only enabled categories from admin panel — already filtered by hook
+  const CATEGORIES = allCats.map(c => c.label) as WatchCategory[];
   const [sort, setSort] = useState<SortValue>('popular');
   const [page, setPage] = useState(1);
-  const [activeCategory, setActiveCategory] = useState<WatchCategory | 'All'>(
-    category ? (CATEGORIES.find(c => c.toLowerCase().replace(/[^a-z]/g, '') === category.replace(/[^a-z]/g, '')) ?? 'All') : 'All'
-  );
+  const [activeCategory, setActiveCategory] = useState<WatchCategory | 'All'>('All');
   const [activeGender, setActiveGender] = useState<WatchGender | 'All'>('All');
   const [inStockOnly, setInStockOnly] = useState(false);
+
+  // Set initial category from URL param once categories load from Supabase
+  useEffect(() => {
+    if (!category) return;
+    const match = CATEGORIES.find(c => c.toLowerCase().replace(/[^a-z]/g, '') === category.replace(/[^a-z]/g, ''));
+    if (match) setActiveCategory(match);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, CATEGORIES.length]);
 
   const catLabel = activeCategory === 'All' ? 'All Watches' : activeCategory;
   useSEO({
