@@ -232,24 +232,24 @@ function VideoPlayer({ src, poster, videoRef, playing, onPlay }: {
 }) {
   return (
     <div style={{ position: 'relative', minHeight: 320, background: '#000', borderRadius: 'inherit' }}>
-      {/* Always keep video in DOM so ref is valid for synchronous .play() in click handler */}
+      {/*
+        Video is ALWAYS opacity:1 and visible — hiding it with opacity:0 causes
+        Safari/iOS to reject play() even on user gesture because the element
+        is not "visible" at call time.
+      */}
       <video
         ref={videoRef}
         src={src}
-        controls
+        controls={playing}
         playsInline
         preload="metadata"
         poster={poster || undefined}
-        onError={(e) => { if (import.meta.env.DEV) console.error('Video load error:', (e.target as HTMLVideoElement).error); }}
         style={{
           width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280,
           display: 'block', background: '#000',
-          opacity: playing ? 1 : 0,
-          pointerEvents: playing ? 'auto' : 'none',
-          transition: 'opacity 180ms ease',
         }}
       />
-      {/* Overlay — visible only before user clicks play */}
+      {/* Overlay — sits on top of video before user clicks play */}
       {!playing && (
         <div
           onClick={onPlay}
@@ -258,6 +258,7 @@ function VideoPlayer({ src, poster, videoRef, playing, onPlay }: {
           style={{
             position: 'absolute', inset: 0, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 2,
           }}
         >
           {poster && (
@@ -265,7 +266,7 @@ function VideoPlayer({ src, poster, videoRef, playing, onPlay }: {
               src={poster}
               alt=""
               aria-hidden="true"
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
             />
           )}
           <div style={{
@@ -273,7 +274,6 @@ function VideoPlayer({ src, poster, videoRef, playing, onPlay }: {
             borderRadius: '50%', background: 'rgba(255,255,255,0.92)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-            transition: 'transform 120ms ease',
           }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="#1A1614" style={{ marginLeft: 4 }}>
               <polygon points="5 3 19 12 5 21 5 3"/>
