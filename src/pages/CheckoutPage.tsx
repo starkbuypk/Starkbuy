@@ -43,45 +43,143 @@ function ownerEmailHtml(params: {
   shipping_address: string; coupon: string; items: { name: string; qty: number; price: string }[];
   shipping: string; total: string;
 }) {
-  const rows = params.items.map(i =>
-    `<tr><td style="padding:6px 8px;border-bottom:1px solid #eee">${esc(i.name)}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center">${i.qty}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right">${esc(i.price)}</td></tr>`
-  ).join('');
-  return `<div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1a1614">
-    <h2 style="color:#C9A84C">&#x1F6D2; New Order &mdash; ${esc(params.order_id)}</h2>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
-      <tr><td style="padding:4px 8px;color:#666">Customer</td><td style="padding:4px 8px"><b>${esc(params.customer_name)}</b></td></tr>
-      <tr><td style="padding:4px 8px;color:#666">Phone</td><td style="padding:4px 8px">${esc(params.customer_phone)}</td></tr>
-      <tr><td style="padding:4px 8px;color:#666">Email</td><td style="padding:4px 8px">${esc(params.customer_email)}</td></tr>
-      <tr><td style="padding:4px 8px;color:#666">Address</td><td style="padding:4px 8px">${esc(params.shipping_address)}</td></tr>
-      <tr><td style="padding:4px 8px;color:#666">Coupon</td><td style="padding:4px 8px">${esc(params.coupon)}</td></tr>
-    </table>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
-      <thead><tr style="background:#f5f0ec"><th style="padding:8px;text-align:left">Item</th><th style="padding:8px">Qty</th><th style="padding:8px;text-align:right">Price</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <p>Shipping: ${esc(params.shipping)} &nbsp;|&nbsp; <b>Total: ${esc(params.total)}</b></p>
-    <p style="color:#666;font-size:13px">Payment: Cash on Delivery</p>
-  </div>`;
+  const rows = params.items.map(i => `
+    <tr>
+      <td style="padding:12px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;color:#1a1614">${esc(i.name)}</td>
+      <td style="padding:12px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;text-align:center;color:#555">${i.qty}</td>
+      <td style="padding:12px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;text-align:right;color:#1a1614;font-weight:600">${esc(i.price)}</td>
+    </tr>`).join('');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f5f0eb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:32px 16px">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08)">
+        <!-- Header -->
+        <tr><td style="background:#1a1614;padding:24px 32px;text-align:center">
+          <p style="margin:0;font-size:22px;font-weight:700;letter-spacing:2px;color:#C9A84C">STARKBUY</p>
+          <p style="margin:6px 0 0;font-size:12px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase">Pakistan</p>
+        </td></tr>
+        <!-- Alert banner -->
+        <tr><td style="background:#C9A84C;padding:12px 32px;text-align:center">
+          <p style="margin:0;font-size:13px;font-weight:600;color:#1a1614;letter-spacing:0.5px">&#x1F6D2; NEW ORDER RECEIVED &mdash; ${esc(params.order_id)}</p>
+        </td></tr>
+        <!-- Customer info -->
+        <tr><td style="padding:28px 32px 0">
+          <p style="margin:0 0 16px;font-size:16px;font-weight:700;color:#1a1614;border-bottom:2px solid #f0ebe6;padding-bottom:10px">Customer Details</p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:5px 0;font-size:13px;color:#888;width:100px">Name</td><td style="padding:5px 0;font-size:13px;color:#1a1614;font-weight:600">${esc(params.customer_name)}</td></tr>
+            <tr><td style="padding:5px 0;font-size:13px;color:#888">Phone</td><td style="padding:5px 0;font-size:13px;color:#1a1614">${esc(params.customer_phone)}</td></tr>
+            <tr><td style="padding:5px 0;font-size:13px;color:#888">Email</td><td style="padding:5px 0;font-size:13px;color:#1a1614">${esc(params.customer_email)}</td></tr>
+            <tr><td style="padding:5px 0;font-size:13px;color:#888">Address</td><td style="padding:5px 0;font-size:13px;color:#1a1614">${esc(params.shipping_address)}</td></tr>
+            ${params.coupon !== 'None' ? `<tr><td style="padding:5px 0;font-size:13px;color:#888">Coupon</td><td style="padding:5px 0;font-size:13px;color:#C9A84C;font-weight:600">${esc(params.coupon)}</td></tr>` : ''}
+          </table>
+        </td></tr>
+        <!-- Items -->
+        <tr><td style="padding:24px 32px 0">
+          <p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#1a1614;border-bottom:2px solid #f0ebe6;padding-bottom:10px">Order Items</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #f0ebe6;border-radius:8px;overflow:hidden">
+            <thead><tr style="background:#faf7f4">
+              <th style="padding:10px 16px;font-size:12px;text-align:left;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Product</th>
+              <th style="padding:10px 16px;font-size:12px;text-align:center;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Qty</th>
+              <th style="padding:10px 16px;font-size:12px;text-align:right;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Price</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </td></tr>
+        <!-- Totals -->
+        <tr><td style="padding:20px 32px 28px">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:4px 0;font-size:13px;color:#888">Shipping</td><td style="padding:4px 0;font-size:13px;text-align:right;color:#1a1614">${esc(params.shipping)}</td></tr>
+            <tr><td style="padding:4px 0;font-size:13px;color:#888">Payment</td><td style="padding:4px 0;font-size:13px;text-align:right;color:#1a1614">Cash on Delivery</td></tr>
+            <tr><td colspan="2" style="padding:8px 0 0"><div style="border-top:2px solid #1a1614;margin:4px 0"></div></td></tr>
+            <tr><td style="padding:8px 0;font-size:16px;font-weight:700;color:#1a1614">Total</td><td style="padding:8px 0;font-size:18px;font-weight:700;text-align:right;color:#C9A84C">${esc(params.total)}</td></tr>
+          </table>
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="background:#f5f0eb;padding:16px 32px;text-align:center;border-top:1px solid #ece7e2">
+          <p style="margin:0;font-size:12px;color:#999">StarkBuy Pakistan &bull; orders@starkbuypk.com</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
 }
 
 function customerEmailHtml(params: {
   order_id: string; first_name: string; items: { name: string; qty: number; price: string }[];
   shipping: string; total: string;
 }) {
-  const rows = params.items.map(i =>
-    `<tr><td style="padding:6px 8px;border-bottom:1px solid #eee">${esc(i.name)}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center">${i.qty}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right">${esc(i.price)}</td></tr>`
-  ).join('');
-  return `<div style="font-family:sans-serif;max-width:560px;margin:auto;color:#1a1614">
-    <h2 style="color:#C9A84C">Thank you, ${esc(params.first_name)}! &#x1F389;</h2>
-    <p>Your order <b>${esc(params.order_id)}</b> has been placed successfully.</p>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
-      <thead><tr style="background:#f5f0ec"><th style="padding:8px;text-align:left">Item</th><th style="padding:8px">Qty</th><th style="padding:8px;text-align:right">Price</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <p>Shipping: ${esc(params.shipping)} &nbsp;|&nbsp; <b>Total: ${esc(params.total)}</b></p>
-    <p>We will contact you shortly to confirm delivery. Payment is <b>Cash on Delivery</b>.</p>
-    <p style="color:#666;font-size:13px">Starkbuy Pakistan &mdash; starkbuypk@gmail.com</p>
-  </div>`;
+  const rows = params.items.map(i => `
+    <tr>
+      <td style="padding:14px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;color:#1a1614">${esc(i.name)}</td>
+      <td style="padding:14px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;text-align:center;color:#666">${i.qty}</td>
+      <td style="padding:14px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;text-align:right;font-weight:700;color:#1a1614">${esc(i.price)}</td>
+    </tr>`).join('');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f5f0eb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:32px 16px">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08)">
+        <!-- Header -->
+        <tr><td style="background:#1a1614;padding:32px;text-align:center">
+          <p style="margin:0;font-size:26px;font-weight:700;letter-spacing:3px;color:#C9A84C">STARKBUY</p>
+          <p style="margin:6px 0 0;font-size:11px;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase">Pakistan</p>
+        </td></tr>
+        <!-- Hero message -->
+        <tr><td style="padding:36px 32px 24px;text-align:center">
+          <div style="width:64px;height:64px;background:#f5f0eb;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:28px;line-height:64px">&#x2705;</div>
+          <p style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1a1614">Order Confirmed!</p>
+          <p style="margin:0;font-size:15px;color:#666">Thank you, <b style="color:#1a1614">${esc(params.first_name)}</b>. Your order has been placed successfully.</p>
+        </td></tr>
+        <!-- Order ID badge -->
+        <tr><td style="padding:0 32px 28px;text-align:center">
+          <div style="display:inline-block;background:#faf7f4;border:1px solid #e8e1d9;border-radius:8px;padding:12px 24px">
+            <p style="margin:0;font-size:11px;color:#999;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Order Number</p>
+            <p style="margin:0;font-size:20px;font-weight:700;color:#C9A84C;letter-spacing:1px">${esc(params.order_id)}</p>
+          </div>
+        </td></tr>
+        <!-- Items table -->
+        <tr><td style="padding:0 32px">
+          <p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#1a1614;border-bottom:2px solid #f0ebe6;padding-bottom:10px">Your Items</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #f0ebe6;border-radius:8px;overflow:hidden">
+            <thead><tr style="background:#faf7f4">
+              <th style="padding:10px 16px;font-size:12px;text-align:left;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Product</th>
+              <th style="padding:10px 16px;font-size:12px;text-align:center;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Qty</th>
+              <th style="padding:10px 16px;font-size:12px;text-align:right;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Price</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </td></tr>
+        <!-- Totals -->
+        <tr><td style="padding:20px 32px 0">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:4px 0;font-size:13px;color:#888">Shipping</td><td style="padding:4px 0;font-size:13px;text-align:right;color:#1a1614">${esc(params.shipping)}</td></tr>
+            <tr><td style="padding:4px 0;font-size:13px;color:#888">Payment Method</td><td style="padding:4px 0;font-size:13px;text-align:right;color:#1a1614">Cash on Delivery</td></tr>
+            <tr><td colspan="2" style="padding:8px 0 0"><div style="border-top:2px solid #1a1614;margin:4px 0"></div></td></tr>
+            <tr><td style="padding:8px 0;font-size:16px;font-weight:700;color:#1a1614">Total Amount</td><td style="padding:8px 0;font-size:20px;font-weight:700;text-align:right;color:#C9A84C">${esc(params.total)}</td></tr>
+          </table>
+        </td></tr>
+        <!-- COD info box -->
+        <tr><td style="padding:24px 32px">
+          <div style="background:#faf7f4;border-left:4px solid #C9A84C;border-radius:0 8px 8px 0;padding:16px 20px">
+            <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#1a1614">&#x1F4B5; Cash on Delivery</p>
+            <p style="margin:0;font-size:13px;color:#666;line-height:1.6">Please keep the exact amount ready at the time of delivery. Our team will contact you to confirm your delivery time.</p>
+          </div>
+        </td></tr>
+        <!-- Track order -->
+        <tr><td style="padding:0 32px 28px;text-align:center">
+          <p style="margin:0 0 4px;font-size:13px;color:#888">Track your order anytime at</p>
+          <p style="margin:0;font-size:13px;font-weight:600;color:#C9A84C">starkbuypk.com &rarr; Track Order</p>
+          <p style="margin:6px 0 0;font-size:12px;color:#aaa">Use your order number and phone/email to track</p>
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="background:#1a1614;padding:20px 32px;text-align:center">
+          <p style="margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:1px;color:#C9A84C">STARKBUY PAKISTAN</p>
+          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4)">orders@starkbuypk.com &bull; WhatsApp available</p>
+          <p style="margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.25)">You received this email because you placed an order on StarkBuy.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
 }
 
 /* ── Crypto-secure order ID ──────────────────────────────────────── */
