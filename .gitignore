@@ -20,3 +20,6 @@ logs/
 # beside it.
 /.plugins/
 /.opencode-skills/
+
+# Figma Make internal AI skills — not project source
+/.claude/

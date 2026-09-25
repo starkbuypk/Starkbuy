@@ -463,13 +463,10 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
                   videoRef={videoRef}
                   playing={videoPlaying}
                   onPlay={() => {
-                    setVideoPlaying(true);
                     const v = videoRef.current;
                     if (!v) return;
-                    v.load();
-                    v.play().catch((err) => {
-                      if (import.meta.env.DEV) console.error('play() failed:', err);
-                    });
+                    setVideoPlaying(true);
+                    v.play().catch(() => {});
                   }}
                 />
               ) : (
