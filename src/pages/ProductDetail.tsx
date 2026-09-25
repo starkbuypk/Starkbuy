@@ -222,72 +222,25 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
   );
 }
 
-/* ── Video player — click-to-play with poster thumbnail ────────── */
-function VideoPlayer({ src, poster, videoRef, playing, onPlay }: {
-  src: string;
-  poster: string;
-  videoRef: React.RefObject<HTMLVideoElement | null>;
-  playing: boolean;
-  onPlay: () => void;
-}) {
+/* ── Video player — pure native HTML5, no JS play() calls ──────── */
+function VideoPlayer({ src, poster }: { src: string; poster: string }) {
   return (
-    <div style={{ position: 'relative', minHeight: 320, background: '#000', borderRadius: 'inherit' }}>
-      {/*
-        Video is ALWAYS opacity:1 and visible — hiding it with opacity:0 causes
-        Safari/iOS to reject play() even on user gesture because the element
-        is not "visible" at call time.
-      */}
+    <div style={{ position: 'relative', background: '#000', borderRadius: 'inherit' }}>
       <video
-        ref={videoRef}
         src={src}
-        controls={playing}
+        controls
         playsInline
         preload="metadata"
         poster={poster || undefined}
         style={{
-          width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280,
-          display: 'block', background: '#000',
+          width: '100%',
+          height: 'auto',
+          maxHeight: '72vh',
+          minHeight: 280,
+          display: 'block',
+          background: '#000',
         }}
       />
-      {/* Overlay — sits on top of video before user clicks play */}
-      {!playing && (
-        <div
-          onClick={onPlay}
-          role="button"
-          aria-label="Play video"
-          style={{
-            position: 'absolute', inset: 0, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 2,
-          }}
-        >
-          {poster && (
-            <img
-              src={poster}
-              alt=""
-              aria-hidden="true"
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
-            />
-          )}
-          <div style={{
-            position: 'relative', zIndex: 1, width: 72, height: 72,
-            borderRadius: '50%', background: 'rgba(255,255,255,0.92)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-          }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="#1A1614" style={{ marginLeft: 4 }}>
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-          </div>
-          <p style={{
-            position: 'absolute', bottom: '1rem', left: 0, right: 0,
-            textAlign: 'center', color: 'rgba(255,255,255,0.85)',
-            fontSize: '0.8125rem', zIndex: 1, fontWeight: 500, margin: 0,
-          }}>
-            Tap to play video
-          </p>
-        </div>
-      )}
     </div>
   );
 }
@@ -303,10 +256,8 @@ export default function ProductDetail() {
   const { toggle, has } = useWishlist();
   const { user } = useAuth();
 
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
-  const [videoPlaying, setVideoPlaying] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -433,7 +384,7 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
             {mediaItems.map((item, i) => (
               <button
                 key={i}
-                onClick={() => { setActiveImg(i); setVideoPlaying(false); }}
+                onClick={() => setActiveImg(i)}
                 style={{ width: 58, height: 58, borderRadius: '0.375rem', overflow: 'hidden', border: i === activeImg ? '2px solid var(--luna-1)' : '2px solid rgba(26,22,20,0.08)', cursor: 'pointer', padding: 0, flexShrink: 0, background: 'rgba(26,22,20,0.45)', transition: 'border-color 150ms', position: 'relative' }}
                 onMouseEnter={e => { if (i !== activeImg) e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)'; }}
                 onMouseLeave={e => { if (i !== activeImg) e.currentTarget.style.borderColor = 'rgba(26,22,20,0.08)'; }}
@@ -460,14 +411,6 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
                 <VideoPlayer
                   src={activeMedia.src}
                   poster={product.gallery[0] ?? product.image ?? ''}
-                  videoRef={videoRef}
-                  playing={videoPlaying}
-                  onPlay={() => {
-                    const v = videoRef.current;
-                    if (!v) return;
-                    setVideoPlaying(true);
-                    v.play().catch(() => {});
-                  }}
                 />
               ) : (
                 <img
