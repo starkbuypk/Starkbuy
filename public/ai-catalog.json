@@ -1,25 +1,33 @@
 {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Starkbuy Pakistan",
+  "schema_version": "v1",
+  "name": "StarkBuy Pakistan",
+  "description": "Premium online watch store in Pakistan offering luxury timepieces for men and women with nationwide delivery and cash on delivery payment.",
   "url": "https://www.starkbuypk.com",
-  "description": "Premium online watch store in Pakistan offering luxury timepieces for men and women with nationwide delivery.",
-  "inLanguage": "en",
-  "publisher": {
-    "@type": "Organization",
-    "name": "Starkbuy",
-    "url": "https://www.starkbuypk.com",
-    "logo": "https://www.starkbuypk.com/favicon.svg",
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+92-323-5901200",
-      "contactType": "customer service",
-      "availableLanguage": ["English", "Urdu"]
-    }
+  "logo": "https://www.starkbuypk.com/favicon.svg",
+  "contact": {
+    "email": "orders@starkbuypk.com",
+    "phone": "+92-323-5901200"
   },
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": "https://www.starkbuypk.com/collections?q={search_term_string}",
-    "query-input": "required name=search_term_string"
+  "capabilities": [
+    {
+      "name": "product_catalog",
+      "description": "Browse and search premium watches by category including Analog, Chronograph, Sports, Automatic, and A+ Replica",
+      "url": "https://www.starkbuypk.com/collections"
+    },
+    {
+      "name": "order_tracking",
+      "description": "Track an existing order using order ID and phone number or email",
+      "url": "https://www.starkbuypk.com/track"
+    },
+    {
+      "name": "contact",
+      "description": "Contact StarkBuy Pakistan customer support via WhatsApp or email",
+      "url": "https://www.starkbuypk.com/contact"
+    }
+  ],
+  "payment_methods": ["Cash on Delivery"],
+  "shipping": {
+    "regions": ["Pakistan"],
+    "free_threshold_pkr": 5000
   }
 }

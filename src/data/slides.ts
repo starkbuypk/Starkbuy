@@ -22,7 +22,7 @@ export const DEFAULT_SLIDES: HeroSlide[] = [
     ctaTo: '/collections',
     cta2Label: 'Track Order',
     cta2To: '/track-order',
-    image: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1600&q=80',
+    image: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1400&q=75&fm=webp&auto=format',
     enabled: true,
   },
   {
@@ -34,7 +34,7 @@ export const DEFAULT_SLIDES: HeroSlide[] = [
     ctaTo: '/collections',
     cta2Label: 'Our Story',
     cta2To: '/about',
-    image: 'https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=1600&q=80',
+    image: 'https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=1400&q=75&fm=webp&auto=format',
     enabled: true,
   },
 ];

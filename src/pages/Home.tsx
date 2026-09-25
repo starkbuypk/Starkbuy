@@ -40,7 +40,10 @@ function HeroSlider() {
 
   const slide = slides[current];
 
-  if (slides.length === 0) return null;
+  // Reserve hero space while slides load — prevents CLS from 0→720px jump
+  if (slides.length === 0) return (
+    <section style={{ position: 'relative', height: 'min(90vh, 720px)', overflow: 'hidden', background: '#1a1614', contain: 'layout paint' }} aria-hidden="true" />
+  );
 
   return (
     <section

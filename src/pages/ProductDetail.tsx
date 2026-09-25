@@ -238,8 +238,9 @@ function VideoPlayer({ src, poster, videoRef, playing, onPlay }: {
         src={src}
         controls
         playsInline
-        preload="none"
+        preload="metadata"
         poster={poster || undefined}
+        onError={(e) => { if (import.meta.env.DEV) console.error('Video load error:', (e.target as HTMLVideoElement).error); }}
         style={{
           width: '100%', height: 'auto', maxHeight: '72vh', minHeight: 280,
           display: 'block', background: '#000',
@@ -463,7 +464,12 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
                   playing={videoPlaying}
                   onPlay={() => {
                     setVideoPlaying(true);
-                    videoRef.current?.play().catch(() => {});
+                    const v = videoRef.current;
+                    if (!v) return;
+                    v.load();
+                    v.play().catch((err) => {
+                      if (import.meta.env.DEV) console.error('play() failed:', err);
+                    });
                   }}
                 />
               ) : (

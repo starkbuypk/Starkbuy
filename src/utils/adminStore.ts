@@ -19,11 +19,11 @@ export interface CategoryConfig {
 }
 
 export const DEFAULT_CATEGORIES: CategoryConfig[] = [
-  { label: 'Analog', to: '/collections/analog', img: 'https://images.unsplash.com/photo-1612817288484-6f916006741a?w=400&q=75', enabled: true },
-  { label: 'Chronograph', to: '/collections/chronograph', img: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=400&q=75', enabled: true },
-  { label: 'Sports', to: '/collections/sports', img: 'https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=400&q=75', enabled: true },
-  { label: 'A+ Replica', to: '/collections/replica', img: 'https://images.unsplash.com/photo-1600003014755-ba31aa59c4b6?w=400&q=75', enabled: true },
-  { label: 'Automatic', to: '/collections/automatic', img: 'https://images.unsplash.com/photo-1582150264904-e0bea5ef0ad1?w=400&q=75', enabled: true },
+  { label: 'Analog', to: '/collections/analog', img: 'https://images.unsplash.com/photo-1612817288484-6f916006741a?w=400&q=70&fm=webp&auto=format', enabled: true },
+  { label: 'Chronograph', to: '/collections/chronograph', img: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=400&q=70&fm=webp&auto=format', enabled: true },
+  { label: 'Sports', to: '/collections/sports', img: 'https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=400&q=70&fm=webp&auto=format', enabled: true },
+  { label: 'A+ Replica', to: '/collections/replica', img: 'https://images.unsplash.com/photo-1600003014755-ba31aa59c4b6?w=400&q=70&fm=webp&auto=format', enabled: true },
+  { label: 'Automatic', to: '/collections/automatic', img: 'https://images.unsplash.com/photo-1582150264904-e0bea5ef0ad1?w=400&q=70&fm=webp&auto=format', enabled: true },
 ];
 
 export interface AboutContent {
