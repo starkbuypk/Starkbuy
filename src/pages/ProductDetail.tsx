@@ -224,9 +224,31 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
 
 /* ── Video player — pure native HTML5, no JS play() calls ──────── */
 function VideoPlayer({ src, poster }: { src: string; poster: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    const onError = () => {
+      const e = v.error;
+      console.error('[VideoPlayer] error code:', e?.code, 'message:', e?.message, 'src:', src);
+    };
+    const onStalled = () => console.warn('[VideoPlayer] stalled — network issue or CORS? src:', src);
+    const onCanPlay = () => console.log('[VideoPlayer] canplay — ready to play, src:', src);
+    v.addEventListener('error', onError);
+    v.addEventListener('stalled', onStalled);
+    v.addEventListener('canplay', onCanPlay);
+    return () => {
+      v.removeEventListener('error', onError);
+      v.removeEventListener('stalled', onStalled);
+      v.removeEventListener('canplay', onCanPlay);
+    };
+  }, [src]);
+
   return (
     <div style={{ position: 'relative', background: '#000', borderRadius: 'inherit' }}>
       <video
+        ref={ref}
         src={src}
         controls
         playsInline
