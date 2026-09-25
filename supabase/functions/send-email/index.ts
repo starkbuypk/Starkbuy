@@ -2,8 +2,7 @@
 // Deploy: supabase functions deploy send-email --project-ref yfgxtattyuoovrriirtf
 // Secret:  supabase secrets set SMTP_PASSWORD="your_password" --project-ref yfgxtattyuoovrriirtf
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+import nodemailer from "npm:nodemailer@6";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +10,7 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
 
   try {
@@ -32,23 +31,22 @@ serve(async (req) => {
         ? to.join(", ")
         : `${to.name} <${to.email}>`;
 
-    const client = new SmtpClient();
-    await client.connectTLS({
-      hostname: "smtp.hostinger.com",
+    const transporter = nodemailer.createTransport({
+      host: "smtp.hostinger.com",
       port: 465,
-      username: "orders@starkbuypk.com",
-      password,
+      secure: true,
+      auth: {
+        user: "orders@starkbuypk.com",
+        pass: password,
+      },
     });
 
-    await client.send({
-      from: "StarkBuy Orders <orders@starkbuypk.com>",
+    await transporter.sendMail({
+      from: '"StarkBuy Orders" <orders@starkbuypk.com>',
       to: toAddress,
       subject,
-      content: " ",
       html,
     });
-
-    await client.close();
 
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...CORS, "Content-Type": "application/json" },
