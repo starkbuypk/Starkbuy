@@ -24,8 +24,6 @@ export const DEFAULT_CATEGORIES: CategoryConfig[] = [
   { label: 'Sports', to: '/collections/sports', img: 'https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=400&q=70&fm=webp&auto=format', enabled: true },
   { label: 'A+ Replica', to: '/collections/replica', img: 'https://images.unsplash.com/photo-1600003014755-ba31aa59c4b6?w=400&q=70&fm=webp&auto=format', enabled: true },
   { label: 'Automatic', to: '/collections/automatic', img: 'https://images.unsplash.com/photo-1582150264904-e0bea5ef0ad1?w=400&q=70&fm=webp&auto=format', enabled: true },
-  { label: 'Ladies Watch', to: '/collections/ladies-watch', img: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=400&q=70&fm=webp&auto=format', enabled: true },
-  { label: 'Couple', to: '/collections/couple', img: 'https://images.unsplash.com/photo-1611021061285-862a1b55e8f0?w=400&q=70&fm=webp&auto=format', enabled: true },
 ];
 
 export interface AboutContent {

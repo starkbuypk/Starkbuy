@@ -97,7 +97,7 @@ function AdminSkeleton() {
 type Section = 'analytics' | 'products' | 'orders' | 'coupons' | 'customers' | 'loyalty' | 'content' | 'about' | 'testimonials' | 'hours' | 'audit' | 'settings';
 
 /* ── Constants ────────────────────────────────────────────────── */
-const ALL_CATEGORIES: WatchCategory[] = ['Analog', 'Chronograph', 'Sports', 'A+ Replica', 'Automatic', 'Sale', 'Smart', 'Luxury', 'Ladies Watch', 'Couple'];
+const ALL_CATEGORIES: WatchCategory[] = ['Analog', 'Chronograph', 'Sports', 'A+ Replica', 'Automatic', 'Sale', 'Smart', 'Luxury', 'Ladies', 'Couple'];
 const ALL_GENDERS: WatchGender[] = ['Men', 'Women', 'Unisex'];
 const ALL_SIZES: CaseSize[] = ['36mm', '38mm', '40mm', '42mm', '44mm', '46mm'];
 const ALL_STRAPS: Strap[] = ['Leather', 'Steel Bracelet', 'Silicone', 'Mesh'];

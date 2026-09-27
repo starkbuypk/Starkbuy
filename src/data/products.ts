@@ -1,4 +1,4 @@
-export type WatchCategory = 'Analog' | 'Chronograph' | 'Smart' | 'Luxury' | 'Sports' | 'Sale' | 'A+ Replica' | 'Automatic' | 'Ladies Watch' | 'Couple';
+export type WatchCategory = 'Analog' | 'Chronograph' | 'Smart' | 'Luxury' | 'Sports' | 'Sale' | 'A+ Replica' | 'Automatic' | 'Ladies' | 'Couple';
 export type WatchGender = 'Men' | 'Women' | 'Unisex';
 export type CaseSize = '36mm' | '38mm' | '40mm' | '42mm' | '44mm' | '46mm';
 export type Strap = 'Leather' | 'Steel Bracelet' | 'Silicone' | 'Mesh';
