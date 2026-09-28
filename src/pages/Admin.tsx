@@ -677,6 +677,7 @@ function Products() {
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [naIds, setNaIds] = useState<string[]>(() => getNewArrivalOverrides() ?? []);
   const [catFilter, setCatFilter] = useState<string>('All');
+  const [reviewCounts, setReviewCounts] = useState<Record<string, number>>({});
 
   async function loadProducts() {
     setLoading(true);
@@ -685,7 +686,14 @@ function Products() {
     setLoading(false);
   }
 
-  useEffect(() => { loadProducts(); }, []);
+  useEffect(() => {
+    loadProducts();
+    getAllReviews().then(reviews => {
+      const counts: Record<string, number> = {};
+      for (const r of reviews) counts[r.productId] = (counts[r.productId] ?? 0) + 1;
+      setReviewCounts(counts);
+    });
+  }, []);
 
   const filtered = useMemo(() => {
     let list = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
@@ -786,7 +794,10 @@ function Products() {
                           {p.image && <img src={p.image.includes('?') ? p.image + '&w=64' : p.image} alt={p.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: '0.375rem', flexShrink: 0 }} loading="lazy" />}
                           <div>
                             <p style={{ fontWeight: 500, margin: 0, fontSize: '0.875rem' }}>{p.name}</p>
-                            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--luna-muted)' }}>{p.caseSizeOptions.join(', ')}</p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--luna-muted)' }}>{p.caseSizeOptions.join(', ')}</p>
+                              {reviewCounts[p.id] ? <span style={{ fontSize: '0.625rem', fontWeight: 700, color: '#C9A84C', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '1rem', padding: '0.1rem 0.4rem' }}>★ {reviewCounts[p.id]} review{reviewCounts[p.id] !== 1 ? 's' : ''}</span> : null}
+                            </div>
                           </div>
                         </div>
                       </td>

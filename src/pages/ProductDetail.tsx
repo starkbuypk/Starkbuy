@@ -150,12 +150,14 @@ function ReviewCard({ review }: { review: Review }) {
 }
 
 /* ── Reviews section ──────────────────────────────────────────── */
-function ReviewsSection({ productId, staticRating, staticCount, user }: {
+function ReviewsSection({ productId, staticRating, staticCount, user, externalReviews, reviewsLoaded, onReviewsChange }: {
   productId: string; staticRating: number; staticCount: number;
   user: { id: string; email?: string | null; user_metadata?: Record<string, string> } | null;
+  externalReviews: Review[]; reviewsLoaded: boolean;
+  onReviewsChange: (r: Review[]) => void;
 }) {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loadingReviews, setLoadingReviews] = useState(true);
+  const reviews = externalReviews;
+  const loadingReviews = !reviewsLoaded;
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [rating, setRating] = useState(5);
   const [text, setText] = useState('');
@@ -163,15 +165,6 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
   const [posting, setPosting] = useState(false);
   const [reviewImages, setReviewImages] = useState<string[]>([]);
   const [uploadingImg, setUploadingImg] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    setLoadingReviews(true);
-    getReviews(productId).then(data => {
-      if (mounted) { setReviews(data); setLoadingReviews(false); }
-    });
-    return () => { mounted = false; };
-  }, [productId]);
 
   useEffect(() => {
     if (!user) return;
@@ -212,7 +205,7 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
         images: reviewImages,
       });
       const updated = await getReviews(productId);
-      setReviews(updated);
+      onReviewsChange(updated);
       setSubmitted(true);
       setAlreadyReviewed(true);
       setText('');
@@ -224,10 +217,9 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
     }
   }
 
-  const totalCount = staticCount + reviews.length;
   const avgRating = (!loadingReviews && reviews.length)
-    ? ((staticRating * staticCount + reviews.reduce((s, r) => s + r.rating, 0)) / Math.max(1, totalCount)).toFixed(1)
-    : staticRating.toFixed(1);
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : reviews.length === 0 && !loadingReviews ? '—' : staticRating.toFixed(1);
 
   return (
     <div style={{ marginTop: '3.5rem' }}>
@@ -241,7 +233,7 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
           ))}
-          <span style={{ color: 'var(--luna-muted)', fontSize: '0.9375rem' }}>{avgRating} · {totalCount} reviews</span>
+          <span style={{ color: 'var(--luna-muted)', fontSize: '0.9375rem' }}>{avgRating} · {reviews.length} review{reviews.length !== 1 ? 's' : ''}</span>
         </div>
       </div>
 
@@ -252,8 +244,10 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
             <p style={{ color: 'var(--luna-muted)', margin: 0, fontSize: '0.875rem' }}>Sign in to write a review</p>
             <Link to="/login" className="btn btn-outline" style={{ display: 'inline-flex', textDecoration: 'none', padding: '0.4375rem 1rem', fontSize: '0.8125rem', minHeight: 36 }}>Sign in</Link>
           </div>
-        ) : alreadyReviewed || submitted ? (
+        ) : submitted ? (
           <p style={{ color: '#3A7A38', margin: 0, fontSize: '0.875rem' }}>✓ Thank you — your review is live.</p>
+        ) : alreadyReviewed ? (
+          <p style={{ color: 'var(--luna-muted)', margin: 0, fontSize: '0.875rem' }}>You've already reviewed this product.</p>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
@@ -343,6 +337,9 @@ export default function ProductDetail() {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [selectedStrap, setSelectedStrap] = useState<Strap>(() => product?.strapOptions[0] ?? 'Leather');
   const [selectedColor, setSelectedColor] = useState<string | null>(() => product?.colorVariants?.[0]?.color ?? null);
+  // Live reviews — loaded at page level so rating header also updates
+  const [liveReviews, setLiveReviews] = useState<Review[]>([]);
+  const [reviewsLoaded, setReviewsLoaded] = useState(false);
 
   // Reset when product changes
   useEffect(() => {
@@ -350,6 +347,9 @@ export default function ProductDetail() {
       setSelectedStrap(product.strapOptions[0] ?? 'Leather');
       setSelectedColor(product.colorVariants?.[0]?.color ?? null);
       setActiveImg(0);
+      setLiveReviews([]);
+      setReviewsLoaded(false);
+      getReviews(product.id).then(r => { setLiveReviews(r); setReviewsLoaded(true); });
     }
   }, [product?.id]);
 
@@ -558,12 +558,16 @@ export default function ProductDetail() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', color: '#f59e0b' }}>
                 {[1, 2, 3, 4, 5].map(n => (
-                  <svg key={n} width="13" height="13" viewBox="0 0 24 24" fill={n <= Math.round(product.rating) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5}>
+                  <svg key={n} width="13" height="13" viewBox="0 0 24 24" fill={n <= Math.round(liveReviews.length > 0 ? liveReviews.reduce((s, r) => s + r.rating, 0) / liveReviews.length : product.rating) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5}>
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
                 ))}
               </div>
-              <span style={{ fontSize: '0.8rem', color: 'var(--luna-muted)' }}>{product.rating} · {product.reviewCount} reviews</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--luna-muted)' }}>
+                {reviewsLoaded
+                  ? `${liveReviews.length > 0 ? (liveReviews.reduce((s, r) => s + r.rating, 0) / liveReviews.length).toFixed(1) : product.rating} · ${liveReviews.length} review${liveReviews.length !== 1 ? 's' : ''}`
+                  : `${product.rating} · ${product.reviewCount} reviews`}
+              </span>
             </div>
 
             {/* Price */}
@@ -709,7 +713,7 @@ export default function ProductDetail() {
       })()}
 
       {/* Reviews */}
-      <ReviewsSection productId={product.id} staticRating={product.rating} staticCount={product.reviewCount} user={user} />
+      <ReviewsSection productId={product.id} staticRating={product.rating} staticCount={product.reviewCount} user={user} externalReviews={liveReviews} reviewsLoaded={reviewsLoaded} onReviewsChange={setLiveReviews} />
 
       {/* Related products */}
       {related.length > 0 && (
