@@ -1,4 +1,10 @@
 export type WatchCategory = 'Analog' | 'Chronograph' | 'Smart' | 'Luxury' | 'Sports' | 'Sale' | 'A+ Replica' | 'Automatic' | 'Ladies' | 'Couple';
+
+export interface ColorVariant {
+  color: string;
+  hex: string;
+  images: string[];
+}
 export type WatchGender = 'Men' | 'Women' | 'Unisex';
 export type CaseSize = '36mm' | '38mm' | '40mm' | '42mm' | '44mm' | '46mm';
 export type Strap = 'Leather' | 'Steel Bracelet' | 'Silicone' | 'Mesh';
@@ -18,7 +24,7 @@ export interface Product {
   hoverImage?: string;
   gallery: string[];
   video?: string;
-  colors?: string[];
+  colorVariants?: ColorVariant[];
   inStock: boolean;
   stock: Record<string, number>;
   newArrival: boolean;

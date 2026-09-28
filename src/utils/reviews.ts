@@ -8,6 +8,7 @@ export interface Review {
   rating: number;
   text: string;
   date: string;
+  images?: string[];
 }
 
 export async function getReviews(productId: string): Promise<Review[]> {
@@ -25,12 +26,13 @@ export async function getReviews(productId: string): Promise<Review[]> {
     rating: row.rating,
     text: row.review_text,
     date: row.created_at,
+    images: Array.isArray(row.images) ? row.images : [],
   }));
 }
 
 export async function addReview(
   productId: string,
-  review: { userId: string | null; displayName: string; avatar?: string; rating: number; text: string }
+  review: { userId: string | null; displayName: string; avatar?: string; rating: number; text: string; images?: string[] }
 ): Promise<void> {
   const { error } = await supabase.from('product_reviews').insert({
     product_id: productId,
@@ -39,6 +41,7 @@ export async function addReview(
     avatar: review.avatar || null,
     rating: review.rating,
     review_text: review.text,
+    images: review.images ?? [],
   });
   if (error) throw new Error(error.message);
 }
@@ -73,5 +76,6 @@ export async function getAllReviews(): Promise<(Review & { productId: string })[
     rating: row.rating,
     text: row.review_text,
     date: row.created_at,
+    images: Array.isArray(row.images) ? row.images : [],
   }));
 }

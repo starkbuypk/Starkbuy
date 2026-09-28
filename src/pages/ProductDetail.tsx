@@ -114,8 +114,14 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
 
 /* ── Review card ──────────────────────────────────────────────── */
 function ReviewCard({ review }: { review: Review }) {
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   return (
     <div style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.18)', borderRadius: '0.625rem', padding: '0.875rem 1rem' }}>
+      {lightboxSrc && (
+        <div onClick={() => setLightboxSrc(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}>
+          <img src={lightboxSrc} alt="" style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: '0.5rem', objectFit: 'contain' }} />
+        </div>
+      )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {review.avatar && <img src={review.avatar} alt="" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }} />}
@@ -130,6 +136,14 @@ function ReviewCard({ review }: { review: Review }) {
         </div>
       </div>
       <p style={{ color: 'var(--luna-muted)', fontSize: '0.8125rem', lineHeight: 1.6, margin: '0 0 0.375rem' }}>"{review.text}"</p>
+      {review.images && review.images.length > 0 && (
+        <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginTop: '0.5rem', marginBottom: '0.375rem' }}>
+          {review.images.map((src, i) => (
+            <img key={i} src={src} alt={`Review photo ${i + 1}`} onClick={() => setLightboxSrc(src)}
+              style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: '0.375rem', border: '1px solid rgba(26,22,20,0.12)', cursor: 'zoom-in' }} />
+          ))}
+        </div>
+      )}
       <span style={{ fontSize: '0.6875rem', color: 'rgba(122,109,101,0.7)' }}>{new Date(review.date).toLocaleDateString('en-PK', { month: 'short', year: 'numeric' })}</span>
     </div>
   );
@@ -147,6 +161,8 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
   const [text, setText] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [reviewImages, setReviewImages] = useState<string[]>([]);
+  const [uploadingImg, setUploadingImg] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -162,6 +178,27 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
     hasUserReviewed(productId, user.id).then(v => setAlreadyReviewed(v));
   }, [productId, user]);
 
+  async function handleImageUpload(file: File) {
+    if (reviewImages.length >= 3) return;
+    if (file.size > 8 * 1024 * 1024) { alert('Image must be under 8MB'); return; }
+    setUploadingImg(true);
+    try {
+      const ext = file.name.split('.').pop() ?? 'jpg';
+      const path = `reviews/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await import('../lib/supabase').then(m =>
+        m.supabase.storage.from('product-images').upload(path, file, { upsert: true })
+      );
+      if (!error) {
+        const { data } = await import('../lib/supabase').then(m =>
+          m.supabase.storage.from('product-images').getPublicUrl(path)
+        );
+        setReviewImages(prev => [...prev, data.publicUrl]);
+      }
+    } finally {
+      setUploadingImg(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !text.trim() || rating === 0 || posting) return;
@@ -172,12 +209,14 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
         displayName: user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'Customer',
         avatar: user.user_metadata?.avatar_url,
         rating, text: text.trim(),
+        images: reviewImages,
       });
       const updated = await getReviews(productId);
       setReviews(updated);
       setSubmitted(true);
       setAlreadyReviewed(true);
       setText('');
+      setReviewImages([]);
     } catch {
       // silently fail — user sees form still
     } finally {
@@ -226,7 +265,26 @@ function ReviewsSection({ productId, staticRating, staticCount, user }: {
               onFocus={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)'; }}
               onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,22,20,0.10)'; }}
             />
-            <button type="submit" disabled={posting} style={{ alignSelf: 'flex-start', padding: '0.4375rem 1rem', background: 'var(--luna-1)', border: 'none', borderRadius: '0.5rem', color: 'var(--luna-5)', fontSize: '0.8125rem', fontWeight: 600, cursor: posting ? 'default' : 'pointer', opacity: posting ? 0.7 : 1, fontFamily: 'DM Sans, sans-serif' }}>{posting ? 'Posting…' : 'Post Review'}</button>
+            {/* Review images */}
+            <div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', marginBottom: '0.375rem' }}>Add photos (optional, max 3)</p>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                {reviewImages.map((src, i) => (
+                  <div key={i} style={{ position: 'relative' }}>
+                    <img src={src} alt="" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: '0.375rem', border: '1px solid rgba(26,22,20,0.12)' }} />
+                    <button type="button" onClick={() => setReviewImages(prev => prev.filter((_, idx) => idx !== i))}
+                      style={{ position: 'absolute', top: -6, right: -6, width: 18, height: 18, borderRadius: '50%', background: '#d93025', border: 'none', color: 'white', fontSize: '0.625rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>✕</button>
+                  </div>
+                ))}
+                {reviewImages.length < 3 && (
+                  <label style={{ width: 56, height: 56, borderRadius: '0.375rem', border: '1.5px dashed rgba(26,22,20,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: uploadingImg ? 'default' : 'pointer', color: 'var(--luna-muted)', fontSize: '1.25rem', opacity: uploadingImg ? 0.5 : 1 }}>
+                    {uploadingImg ? '…' : '+'}
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ''; }} disabled={uploadingImg} />
+                  </label>
+                )}
+              </div>
+            </div>
+            <button type="submit" disabled={posting || uploadingImg} style={{ alignSelf: 'flex-start', padding: '0.4375rem 1rem', background: 'var(--luna-1)', border: 'none', borderRadius: '0.5rem', color: 'var(--luna-5)', fontSize: '0.8125rem', fontWeight: 600, cursor: (posting || uploadingImg) ? 'default' : 'pointer', opacity: (posting || uploadingImg) ? 0.7 : 1, fontFamily: 'DM Sans, sans-serif' }}>{posting ? 'Posting…' : 'Post Review'}</button>
           </form>
         )}
       </div>
@@ -282,14 +340,16 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [selectedStrap, setSelectedStrap] = useState<Strap>(() => product?.strapOptions[0] ?? 'Leather');
+  const [selectedColor, setSelectedColor] = useState<string | null>(() => product?.colorVariants?.[0]?.color ?? null);
 
-  // Reset size/strap when product changes
+  // Reset when product changes
   useEffect(() => {
     if (product) {
-setSelectedStrap(product.strapOptions[0] ?? 'Leather');
+      setSelectedStrap(product.strapOptions[0] ?? 'Leather');
+      setSelectedColor(product.colorVariants?.[0]?.color ?? null);
+      setActiveImg(0);
     }
   }, [product?.id]);
 
@@ -391,8 +451,11 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
 
       {/* Main layout: thumbnail strip | main image | info panel */}
       {(() => {
+        const activeVariant = product.colorVariants?.find(v => v.color === selectedColor);
+        const variantImages = activeVariant?.images?.filter(Boolean) ?? [];
+        const baseImages = variantImages.length > 0 ? variantImages : product.gallery;
         const mediaItems: { type: 'image' | 'video'; src: string }[] = [
-          ...product.gallery.map(src => ({ type: 'image' as const, src })),
+          ...baseImages.map(src => ({ type: 'image' as const, src })),
           ...(product.video ? [{ type: 'video' as const, src: product.video }] : []),
         ];
         const activeMedia = mediaItems[activeImg] ?? mediaItems[0];
@@ -520,19 +583,21 @@ setSelectedStrap(product.strapOptions[0] ?? 'Leather');
               </div>
             </div>
 
-            {/* Color swatches */}
-            {product.colors && product.colors.length > 0 && (
+            {/* Color variants — clickable, switches gallery */}
+            {product.colorVariants && product.colorVariants.length > 0 && (
               <div style={{ marginBottom: '1rem' }}>
-                <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.5rem' }}>Available Colors</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-                  {product.colors.map(color => {
-                    const colorMap: Record<string, string> = { Silver: '#C0C0C0', Gold: '#C9A84C', 'Rose Gold': '#B76E79', Black: '#1A1A1A', White: '#F5F5F5', Blue: '#1E40AF', Green: '#166534', Brown: '#78350F', Red: '#991B1B', Champagne: '#F5DEB3' };
-                    const hex = colorMap[color] ?? '#888';
+                <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.5rem' }}>
+                  Color: <span style={{ color: 'var(--luna-1)', textTransform: 'none', letterSpacing: 0 }}>{selectedColor}</span>
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+                  {product.colorVariants.map(v => {
+                    const isSelected = selectedColor === v.color;
                     return (
-                      <div key={color} title={color} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.25rem 0.625rem 0.25rem 0.375rem', borderRadius: '2rem', border: '1px solid rgba(26,22,20,0.14)', background: 'rgba(0,0,0,0.03)', fontSize: '0.8rem', color: 'var(--luna-fg)' }}>
-                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: hex, border: '1px solid rgba(0,0,0,0.15)', flexShrink: 0, display: 'inline-block' }} />
-                        {color}
-                      </div>
+                      <button key={v.color} type="button" title={v.color} onClick={() => { setSelectedColor(v.color); setActiveImg(0); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.3rem 0.75rem 0.3rem 0.4rem', borderRadius: '2rem', border: isSelected ? '2px solid var(--luna-1)' : '1.5px solid rgba(26,22,20,0.16)', background: isSelected ? 'rgba(201,168,76,0.1)' : 'rgba(0,0,0,0.03)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.8125rem', fontWeight: isSelected ? 700 : 400, color: 'var(--luna-fg)', transition: 'all 120ms' }}>
+                        <span style={{ width: 16, height: 16, borderRadius: '50%', background: v.hex, border: isSelected ? '2px solid rgba(201,168,76,0.5)' : '1px solid rgba(0,0,0,0.18)', flexShrink: 0 }} />
+                        {v.color}
+                      </button>
                     );
                   })}
                 </div>

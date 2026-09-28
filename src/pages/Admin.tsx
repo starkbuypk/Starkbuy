@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { formatPrice } from '../data/products';
-import type { Product, WatchCategory, WatchGender, CaseSize, Strap } from '../data/products';
+import type { Product, WatchCategory, WatchGender, CaseSize, Strap, ColorVariant } from '../data/products';
 import { StarkBuyLogo } from '../components/StarkBuyLogo';
 import { BRAND } from '../config';
 import { DEFAULT_SLIDES, type HeroSlide } from '../data/slides';
@@ -441,6 +441,7 @@ function ProductModal({ initial, onClose, onSave }: {
   onSave: (p: Product) => Promise<void>;
 }) {
   const [form, setForm] = useState<Product>(() => initial ?? buildEmptyProduct());
+  const [colorVariants, setColorVariants] = useState<ColorVariant[]>(() => initial?.colorVariants ?? []);
   const [gallery2, setGallery2] = useState(form.gallery[1] ?? '');
   const [gallery3, setGallery3] = useState(form.gallery[2] ?? '');
   const [videoUrl, setVideoUrl] = useState(form.video ?? '');
@@ -460,7 +461,7 @@ function ProductModal({ initial, onClose, onSave }: {
     const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + form.id.slice(-6);
     const gallery = [form.image, gallery2, gallery3].filter(Boolean);
     try {
-      await onSave({ ...form, slug, gallery, video: videoUrl || undefined });
+      await onSave({ ...form, slug, gallery, video: videoUrl || undefined, colorVariants: colorVariants.length ? colorVariants : undefined });
     } catch (e: unknown) {
       setErr('Save failed. Check your internet connection and try again.');
     }
@@ -505,22 +506,62 @@ function ProductModal({ initial, onClose, onSave }: {
               <CheckGroup<Strap> label="Strap Options" options={ALL_STRAPS} selected={form.strapOptions} onChange={v => set('strapOptions', v)} />
             </div>
 
-            <div style={{ gridColumn: '1 / -1' }}>
-              <p style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', fontWeight: 500, marginBottom: '0.5rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Watch Colors (select available dial/case colors)</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {/* ── Color Variants ─────────────────────────────── */}
+            <div style={{ gridColumn: '1 / -1', background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(26,22,20,0.09)', borderRadius: '0.75rem', padding: '1rem 1.125rem' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', fontWeight: 700, marginBottom: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Watch Color Variants</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--luna-muted)', marginBottom: '0.875rem', margin: '0 0 0.875rem' }}>Select colors → upload images for each color. Customer clicks a color → those images show.</p>
+
+              {/* Color toggle buttons */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
                 {ALL_COLORS.map(c => {
-                  const selected = (form.colors ?? []).includes(c.label);
+                  const isActive = colorVariants.some(v => v.color === c.label);
                   return (
                     <button key={c.label} type="button" onClick={() => {
-                      const prev = form.colors ?? [];
-                      set('colors', selected ? prev.filter(x => x !== c.label) : [...prev, c.label]);
-                    }} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.3125rem 0.625rem', borderRadius: '2rem', border: selected ? '2px solid var(--luna-1)' : '1.5px solid rgba(26,22,20,0.18)', background: selected ? 'rgba(201,168,76,0.1)' : 'transparent', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.8125rem', fontWeight: selected ? 600 : 400, color: 'var(--luna-fg)', transition: 'all 120ms' }}>
-                      <span style={{ width: 14, height: 14, borderRadius: '50%', background: c.hex, border: '1px solid rgba(0,0,0,0.15)', flexShrink: 0 }} />
+                      if (isActive) {
+                        setColorVariants(prev => prev.filter(v => v.color !== c.label));
+                      } else {
+                        setColorVariants(prev => [...prev, { color: c.label, hex: c.hex, images: [] }]);
+                      }
+                    }} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.7rem', borderRadius: '2rem', border: isActive ? '2px solid var(--luna-1)' : '1.5px solid rgba(26,22,20,0.18)', background: isActive ? 'rgba(201,168,76,0.12)' : 'transparent', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.8125rem', fontWeight: isActive ? 700 : 400, color: 'var(--luna-fg)', transition: 'all 120ms' }}>
+                      <span style={{ width: 13, height: 13, borderRadius: '50%', background: c.hex, border: '1px solid rgba(0,0,0,0.18)', flexShrink: 0 }} />
                       {c.label}
                     </button>
                   );
                 })}
               </div>
+
+              {/* Per-color image upload */}
+              {colorVariants.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {colorVariants.map((variant, vi) => (
+                    <div key={variant.color} style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(26,22,20,0.10)', borderRadius: '0.625rem', padding: '0.875rem 1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem' }}>
+                        <span style={{ width: 16, height: 16, borderRadius: '50%', background: variant.hex, border: '1px solid rgba(0,0,0,0.18)', flexShrink: 0 }} />
+                        <p style={{ margin: 0, fontWeight: 700, fontSize: '0.875rem' }}>{variant.color} — Images</p>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--luna-muted)' }}>(upload 1–3 images for this color)</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.625rem' }}>
+                        {[0, 1, 2].map(imgIdx => (
+                          <ImageUploadField
+                            key={imgIdx}
+                            label={imgIdx === 0 ? 'Main image *' : `Image ${imgIdx + 1}`}
+                            value={variant.images[imgIdx] ?? ''}
+                            onChange={url => {
+                              setColorVariants(prev => prev.map((v, i) => {
+                                if (i !== vi) return v;
+                                const imgs = [...v.images];
+                                imgs[imgIdx] = url;
+                                return { ...v, images: imgs.filter(Boolean) };
+                              }));
+                            }}
+                            compact
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={{ gridColumn: '1 / -1' }}>
