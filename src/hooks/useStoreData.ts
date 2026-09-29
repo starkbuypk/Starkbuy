@@ -9,7 +9,7 @@ import {
   type BusinessHours,
   DEFAULT_BUSINESS_HOURS,
 } from '../utils/adminStore';
-import { dbGetProducts, dbGetConfig } from '../utils/supabaseStore';
+import { dbGetProducts, dbGetConfig, dbGetReviewStats } from '../utils/supabaseStore';
 
 // Custom events dispatched by Admin.tsx after any save
 export const EV_PRODUCTS   = 'sb-products-updated';
@@ -96,6 +96,21 @@ export function useShippingConfig() {
 
 export const EV_TESTIMONIALS = 'sb-testimonials-updated';
 export const EV_HOURS = 'sb-hours-updated';
+export const EV_REVIEWS = 'sb-reviews-updated';
+
+export function useReviewStats(): Record<string, { count: number; avg: number }> {
+  const [stats, setStats] = useState<Record<string, { count: number; avg: number }>>({});
+  async function refresh() {
+    const data = await dbGetReviewStats();
+    setStats(data);
+  }
+  useEffect(() => {
+    refresh();
+    window.addEventListener(EV_REVIEWS, refresh);
+    return () => window.removeEventListener(EV_REVIEWS, refresh);
+  }, []);
+  return stats;
+}
 
 export function useTestimonials(): Testimonial[] | null {
   const [items, setItems] = useState<Testimonial[] | null>(null);

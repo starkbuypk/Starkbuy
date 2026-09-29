@@ -290,6 +290,36 @@ export async function dbClearAuditLog(): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+/* ── Review stats — cached, deduped ────────────────────────────── */
+
+let _reviewStatsCache: { data: Record<string, { count: number; avg: number }>; ts: number } | null = null;
+let _reviewStatsPromise: Promise<Record<string, { count: number; avg: number }>> | null = null;
+
+export function invalidateReviewStatsCache() {
+  _reviewStatsCache = null;
+  _reviewStatsPromise = null;
+}
+
+export async function dbGetReviewStats(): Promise<Record<string, { count: number; avg: number }>> {
+  if (_reviewStatsCache && Date.now() - _reviewStatsCache.ts < 60_000) return _reviewStatsCache.data;
+  if (_reviewStatsPromise) return _reviewStatsPromise;
+  _reviewStatsPromise = (async () => {
+    const { data } = await supabase.from('product_reviews').select('product_id, rating');
+    const map: Record<string, { count: number; sum: number }> = {};
+    for (const row of data ?? []) {
+      if (!map[row.product_id]) map[row.product_id] = { count: 0, sum: 0 };
+      map[row.product_id].count++;
+      map[row.product_id].sum += row.rating;
+    }
+    const result: Record<string, { count: number; avg: number }> = {};
+    for (const [id, { count, sum }] of Object.entries(map)) result[id] = { count, avg: sum / count };
+    _reviewStatsCache = { data: result, ts: Date.now() };
+    _reviewStatsPromise = null;
+    return result;
+  })();
+  return _reviewStatsPromise;
+}
+
 /* ── Site Config (categories, shipping, etc.) ────────────────────── */
 
 export async function dbGetConfig<T>(key: string): Promise<T | null> {

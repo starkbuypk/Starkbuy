@@ -12,6 +12,8 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from '../utils/toast';
 import { IconChevronRight, IconHeart, IconTruck, IconShield, IconRefresh } from '../components/icons/Icons';
 import { getReviews, addReview, hasUserReviewed, type Review } from '../utils/reviews';
+import { invalidateReviewStatsCache } from '../utils/supabaseStore';
+import { EV_REVIEWS } from '../hooks/useStoreData';
 import { useShippingConfig } from '../hooks/useStoreData';
 import { BRAND } from '../config';
 
@@ -206,6 +208,8 @@ function ReviewsSection({ productId, staticRating, staticCount, user, externalRe
       });
       const updated = await getReviews(productId);
       onReviewsChange(updated);
+      invalidateReviewStatsCache();
+      window.dispatchEvent(new CustomEvent(EV_REVIEWS));
       setSubmitted(true);
       setAlreadyReviewed(true);
       setText('');

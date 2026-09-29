@@ -6,6 +6,7 @@ import { IconHeart, IconStar } from './icons/Icons';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { toast } from '../utils/toast';
+import { useReviewStats } from '../hooks/useStoreData';
 
 interface Props {
   product: Product;
@@ -16,6 +17,9 @@ export const ProductCard = memo(function ProductCard({ product }: Props) {
   const { addToCart, openCart } = useCart();
   const [imgSrc, setImgSrc] = useState(product.image);
   const wishlisted = has(product.id);
+  const reviewStats = useReviewStats();
+  const liveCount = reviewStats[product.id]?.count ?? product.reviewCount;
+  const liveRating = reviewStats[product.id] ? (reviewStats[product.id].avg).toFixed(1) : (product.rating || 0).toFixed(1);
 
   const salePrice = product.discountPercent > 0
     ? Math.round(product.codPrice * (1 - product.discountPercent / 100))
@@ -130,7 +134,7 @@ export const ProductCard = memo(function ProductCard({ product }: Props) {
               <IconStar size={12} />
             </span>
             <span style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', fontVariantNumeric: 'tabular-nums' }}>
-              {product.rating} ({product.reviewCount})
+              {liveRating} ({liveCount})
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.625rem' }}>

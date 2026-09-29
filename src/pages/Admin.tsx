@@ -22,6 +22,7 @@ import {
   dbGetConfig, dbSetConfig,
 } from '../utils/supabaseStore';
 import { getAllReviews, deleteReview, type Review } from '../utils/reviews';
+import { invalidateReviewStatsCache } from '../utils/supabaseStore';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from '../utils/toast';
@@ -509,7 +510,7 @@ function ProductModal({ initial, onClose, onSave }: {
             {/* ── Color Variants ─────────────────────────────── */}
             <div style={{ gridColumn: '1 / -1', background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(26,22,20,0.09)', borderRadius: '0.75rem', padding: '1rem 1.125rem' }}>
               <p style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', fontWeight: 700, marginBottom: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Watch Color Variants</p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--luna-muted)', marginBottom: '0.875rem', margin: '0 0 0.875rem' }}>Select colors → upload images for each color. Customer clicks a color → those images show.</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--luna-muted)', marginBottom: '0.875rem', margin: '0 0 0.875rem' }}>Select all available colors → upload images for each. Customer clicks a color → those images show. Each color needs its own images separately.</p>
 
               {/* Color toggle buttons */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
@@ -547,10 +548,11 @@ function ProductModal({ initial, onClose, onSave }: {
                             label={imgIdx === 0 ? 'Main image *' : `Image ${imgIdx + 1}`}
                             value={variant.images[imgIdx] ?? ''}
                             onChange={url => {
-                              setColorVariants(prev => prev.map((v, i) => {
-                                if (i !== vi) return v;
-                                const imgs = [...v.images];
-                                imgs[imgIdx] = url;
+                              const colorKey = variant.color;
+                              setColorVariants(prev => prev.map(v => {
+                                if (v.color !== colorKey) return v;
+                                const imgs = [...(v.images ?? [])];
+                                if (url) { imgs[imgIdx] = url; } else { imgs.splice(imgIdx, 1); }
                                 return { ...v, images: imgs.filter(Boolean) };
                               }));
                             }}
@@ -1815,6 +1817,7 @@ function ProductReviewsPanel() {
     setDeleting(id);
     try {
       await deleteReview(id);
+      invalidateReviewStatsCache();
       setReviews(prev => prev.filter(r => r.id !== id));
     } finally {
       setDeleting(null);
