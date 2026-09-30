@@ -124,12 +124,12 @@ function HeroSlider() {
         </h1>
         <p style={{ fontSize: '1.125rem', color: 'rgba(255,255,255,0.72)', margin: '0 0 2.5rem', maxWidth: 380 }}>{slide.sub}</p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <Link to={slide.ctaTo} className="btn btn-primary" style={{ gap: '0.5rem' }}>
+          <Link to={slide.ctaTo} className="btn btn-primary" style={{ gap: '0.5rem', fontSize: '1rem', fontWeight: 700, padding: '0.875rem 2rem', letterSpacing: '0.04em' }}>
             {slide.ctaLabel}
             <IconArrowRight />
           </Link>
           {slide.cta2Label && (
-            <Link to={slide.cta2To} className="btn btn-outline-light">
+            <Link to={slide.cta2To} className="btn btn-outline-light" style={{ fontSize: '0.9375rem', padding: '0.875rem 1.75rem' }}>
               {slide.cta2Label}
             </Link>
           )}
@@ -223,10 +223,11 @@ function PrepaidBanner() {
   return (
     <section style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 1.5rem 0' }}>
       <div style={{
-        background: 'linear-gradient(135deg, rgba(201,168,76,0.10) 0%, rgba(201,168,76,0.04) 100%)',
-        border: '1px solid rgba(201,168,76,0.22)',
-        borderRadius: 'var(--radius)',
-        padding: '1.25rem 1.5rem',
+        background: '#FFFFFF',
+        borderLeft: '3px solid var(--luna-1)',
+        borderTop: 'var(--rule)',
+        borderBottom: 'var(--rule)',
+        padding: '1.125rem 1.5rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -270,10 +271,10 @@ function CategoryStrip() {
             style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
             className="img-card"
           >
-            <div style={{ borderRadius: 'var(--radius)', overflow: 'hidden', aspectRatio: '1', background: 'var(--luna-4)' }}>
-              {cat.img && <img src={cat.img} alt={cat.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 250ms, transform 350ms var(--ease-spring)' }} />}
+            <div style={{ overflow: 'hidden', aspectRatio: '1', background: '#EBEBEB', borderTop: 'var(--rule)' }}>
+              {cat.img && <img src={cat.img} alt={cat.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 400ms var(--ease-spring)' }} />}
             </div>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--luna-text)', textAlign: 'center', letterSpacing: '0.01em' }}>{cat.label}</span>
+            <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--luna-fg)', textAlign: 'center', letterSpacing: '0.02em' }}>{cat.label}</span>
           </Link>
         ))}
       </div>

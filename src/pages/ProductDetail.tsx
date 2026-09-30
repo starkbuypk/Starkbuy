@@ -550,12 +550,12 @@ export default function ProductDetail() {
           {/* Info panel */}
           <div style={{ fontSize: '1rem' }}>
             {/* Category eyebrow */}
-            <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--luna-2)', margin: '0 0 0.55rem' }}>
+            <p className="eyebrow" style={{ margin: '0 0 0.75rem' }}>
               {product.category}
             </p>
 
             {/* Product name */}
-            <h1 className="font-display" style={{ fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 0.625rem', lineHeight: 1.1 }}>
+            <h1 className="font-display" style={{ fontSize: 'clamp(1.625rem, 3vw, 2.375rem)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 0.75rem', lineHeight: 1.08 }}>
               {product.name}
             </h1>
 
@@ -576,13 +576,13 @@ export default function ProductDetail() {
             </div>
 
             {/* Price */}
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.625rem', marginBottom: '0.3rem' }}>
-                <span style={{ fontSize: 'clamp(1.25rem, 2.2vw, 1.625rem)', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: salePrice ? 'var(--luna-1)' : 'var(--luna-fg)' }}>
+            <div style={{ marginBottom: '1.25rem', paddingBottom: '1.25rem', borderBottom: '1px solid rgba(26,22,20,0.08)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2rem)', fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: salePrice ? 'var(--luna-1)' : 'var(--luna-fg)', letterSpacing: '-0.01em' }}>
                   {formatPrice(displayPrice)}
                 </span>
                 {salePrice && (
-                  <span style={{ fontSize: '0.875rem', color: 'var(--luna-muted)', textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' }}>
+                  <span style={{ fontSize: '1rem', color: 'var(--luna-muted)', textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' }}>
                     {formatPrice(product.codPrice)}
                   </span>
                 )}
@@ -592,19 +592,19 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Color variants — clickable, switches gallery */}
+            {/* Color variants — flat chips */}
             {product.colorVariants && product.colorVariants.length > 0 && (
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.5rem' }}>
-                  Color: <span style={{ color: 'var(--luna-1)', textTransform: 'none', letterSpacing: 0 }}>{selectedColor}</span>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <p className="eyebrow" style={{ margin: '0 0 0.625rem', color: 'var(--luna-muted)' }}>
+                  Color — <span style={{ color: 'var(--luna-fg)', textTransform: 'none', letterSpacing: 0, fontWeight: 600 }}>{selectedColor}</span>
                 </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
                   {product.colorVariants.map(v => {
                     const isSelected = selectedColor === v.color;
                     return (
                       <button key={v.color} type="button" title={v.color} onClick={() => { setSelectedColor(v.color); setActiveImg(0); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.3rem 0.75rem 0.3rem 0.4rem', borderRadius: '2rem', border: isSelected ? '2px solid var(--luna-1)' : '1.5px solid rgba(26,22,20,0.16)', background: isSelected ? 'rgba(201,168,76,0.1)' : 'rgba(0,0,0,0.03)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.8125rem', fontWeight: isSelected ? 700 : 400, color: 'var(--luna-fg)', transition: 'all 120ms' }}>
-                        <span style={{ width: 16, height: 16, borderRadius: '50%', background: v.hex, border: isSelected ? '2px solid rgba(201,168,76,0.5)' : '1px solid rgba(0,0,0,0.18)', flexShrink: 0 }} />
+                        className={`chip${isSelected ? ' active' : ''}`}>
+                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: v.hex, border: '1px solid rgba(0,0,0,0.2)', flexShrink: 0 }} />
                         {v.color}
                       </button>
                     );
@@ -613,30 +613,16 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* Strap selector */}
+            {/* Strap selector — flat chips */}
             {product.strapOptions.length > 0 && (
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.5rem' }}>
-                  Strap: <span style={{ color: 'var(--luna-1)', fontWeight: 700 }}>{selectedStrap}</span>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <p className="eyebrow" style={{ margin: '0 0 0.625rem', color: 'var(--luna-muted)' }}>
+                  Strap — <span style={{ color: 'var(--luna-fg)', textTransform: 'none', letterSpacing: 0, fontWeight: 600 }}>{selectedStrap}</span>
                 </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
                   {product.strapOptions.map(strap => (
-                    <button
-                      key={strap}
-                      onClick={() => setSelectedStrap(strap as Strap)}
-                      style={{
-                        padding: '0.35rem 0.875rem',
-                        borderRadius: '0.375rem',
-                        border: selectedStrap === strap ? '1.5px solid var(--luna-1)' : '1px solid rgba(26,22,20,0.15)',
-                        background: selectedStrap === strap ? 'rgba(201,168,76,0.12)' : 'rgba(0,0,0,0.04)',
-                        color: selectedStrap === strap ? 'var(--luna-1)' : 'var(--luna-muted)',
-                        fontSize: '0.8125rem',
-                        fontWeight: selectedStrap === strap ? 700 : 400,
-                        cursor: 'pointer',
-                        fontFamily: 'DM Sans, sans-serif',
-                        transition: 'all 120ms',
-                      }}
-                    >
+                    <button key={strap} onClick={() => setSelectedStrap(strap as Strap)}
+                      className={`chip${selectedStrap === strap ? ' active' : ''}`}>
                       {strap}
                     </button>
                   ))}
@@ -645,72 +631,67 @@ export default function ProductDetail() {
             )}
 
             {/* Quantity */}
-            <div style={{ marginBottom: '1rem' }}>
-              <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.4rem' }}>Quantity</p>
-              <div style={{ display: 'flex', alignItems: 'center', background: '#FFFFFF', border: '1px solid rgba(26,22,20,0.10)', borderRadius: '0.5rem', overflow: 'hidden', width: 'fit-content' }}>
-                <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 36, height: 36, background: 'none', border: 'none', color: 'var(--luna-fg)', cursor: 'pointer', fontSize: '1rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.06)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>−</button>
-                <span style={{ minWidth: 36, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: '0.9375rem' }}>{qty}</span>
-                <button onClick={() => setQty(q => q + 1)} style={{ width: 36, height: 36, background: 'none', border: 'none', color: 'var(--luna-fg)', cursor: 'pointer', fontSize: '1rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.06)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>+</button>
+            <div style={{ marginBottom: '1.25rem' }}>
+              <p className="eyebrow" style={{ margin: '0 0 0.625rem', color: 'var(--luna-muted)' }}>Quantity</p>
+              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid rgba(15,14,12,0.14)', width: 'fit-content' }}>
+                <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 36, height: 36, background: 'none', border: 'none', borderRight: '1px solid rgba(15,14,12,0.10)', color: 'var(--luna-fg)', cursor: 'pointer', fontSize: '1rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(15,14,12,0.05)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>−</button>
+                <span style={{ minWidth: 40, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: '0.9375rem' }}>{qty}</span>
+                <button onClick={() => setQty(q => q + 1)} style={{ width: 36, height: 36, background: 'none', border: 'none', borderLeft: '1px solid rgba(15,14,12,0.10)', color: 'var(--luna-fg)', cursor: 'pointer', fontSize: '1rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(15,14,12,0.05)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>+</button>
               </div>
             </div>
 
             {/* CTA buttons */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-              <button onClick={handleAddToCart} className="btn btn-outline" style={{ flex: 1, minWidth: 100, justifyContent: 'center', fontSize: '0.875rem', minHeight: 42, padding: '0 1rem', transition: 'all 150ms' }}>
-                Add to Cart
-              </button>
-              <button onClick={handleBuyNow} className="btn btn-primary" style={{ flex: 1, minWidth: 100, justifyContent: 'center', fontSize: '0.875rem', minHeight: 42, padding: '0 1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
+              <button onClick={handleBuyNow} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.9375rem', fontWeight: 700, letterSpacing: '0.03em' }}>
                 Buy Now
               </button>
-              <button onClick={handleWishlistToggle} style={{ width: 42, height: 42, borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.10)', color: wishlisted ? 'var(--luna-1)' : 'var(--luna-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 150ms, background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.08)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}>
-                <IconHeart size={17} filled={wishlisted} />
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={handleAddToCart} className="btn btn-outline" style={{ flex: 1, justifyContent: 'center', fontSize: '0.875rem' }}>
+                  Add to Cart
+                </button>
+                <button onClick={handleWishlistToggle} style={{ width: 44, height: 44, borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.10)', color: wishlisted ? 'var(--luna-1)' : 'var(--luna-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 150ms, background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.08)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}>
+                  <IconHeart size={17} filled={wishlisted} />
+                </button>
+              </div>
             </div>
 
-            {/* Product metadata grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(26,22,20,0.06)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: '1rem' }}>
+            {/* Spec table — ruled rows, no card box */}
+            <div style={{ borderTop: 'var(--rule)', marginBottom: '1.25rem' }}>
               {[
-                { label: 'COLLECTION', value: product.brand },
-                { label: 'CATEGORY', value: product.category },
-                { label: 'AVAILABILITY', value: product.inStock ? 'In stock' : 'Sold out' },
-                { label: 'GENDER', value: product.gender },
-                { label: 'MOVEMENT', value: product.movement || '—' },
-                { label: 'WATER RESISTANCE', value: product.waterResistance || '—' },
+                { label: 'Collection', value: product.brand },
+                { label: 'Category', value: product.category },
+                { label: 'Availability', value: product.inStock ? 'In stock' : 'Sold out', accent: product.inStock ? '#3A7A38' : '#C44830' },
+                { label: 'Gender', value: product.gender },
+                ...(product.movement ? [{ label: 'Movement', value: product.movement }] : []),
+                ...(product.waterResistance ? [{ label: 'Water Resistance', value: product.waterResistance }] : []),
+                ...(product.caseMaterial ? [{ label: 'Case Material', value: product.caseMaterial }] : []),
               ].map(item => (
-                <div key={item.label} style={{ padding: '0.5rem 0.75rem', background: 'rgba(0,0,0,0.03)' }}>
-                  <p style={{ margin: 0, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--luna-muted)', textTransform: 'uppercase', marginBottom: '0.15rem' }}>{item.label}</p>
-                  <p style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 600, color: item.label === 'AVAILABILITY' ? (product.inStock ? '#3A7A38' : '#C44830') : 'var(--luna-fg)' }}>{item.value}</p>
+                <div key={item.label} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: 'var(--rule)', gap: '1rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--luna-muted)', letterSpacing: '0.02em', flexShrink: 0 }}>{item.label}</span>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: item.accent ?? 'var(--luna-fg)', textAlign: 'right' }}>{item.value}</span>
                 </div>
               ))}
             </div>
 
-            {/* Trust strip */}
-            <div style={{ display: 'flex', gap: '0.875rem', flexWrap: 'wrap', padding: '0.75rem 0', borderTop: '1px solid rgba(26,22,20,0.08)' }}>
+            {/* Trust strip — ruled, no card */}
+            <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', paddingBottom: '1.25rem', borderBottom: 'var(--rule)', marginBottom: '1.25rem' }}>
               {[
                 { icon: <IconTruck size={13} />, text: `Free delivery above ${BRAND.currencySymbol} ${freeShipThreshold.toLocaleString()}` },
                 { icon: <IconShield size={13} />, text: '12-month warranty' },
                 { icon: <IconRefresh size={13} />, text: '7-day returns' },
               ].map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--luna-muted)', fontSize: '0.8rem' }}>
-                  <span style={{ color: 'var(--luna-2)' }}>{item.icon}</span>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--luna-muted)', fontSize: '0.8125rem' }}>
+                  <span style={{ color: 'var(--luna-1)' }}>{item.icon}</span>
                   {item.text}
                 </div>
               ))}
             </div>
 
-            {/* Description */}
-            <div style={{ marginTop: '0.75rem', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: '0.5rem', padding: '0.75rem 0.875rem' }}>
-              <p style={{ margin: 0, fontSize: '0.575rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.4rem' }}>Description</p>
-              <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--luna-muted)', lineHeight: 1.65 }}>{product.description}</p>
+            {/* Description — open text, no card box */}
+            <div>
+              <p className="eyebrow" style={{ margin: '0 0 0.625rem', color: 'var(--luna-muted)' }}>Description</p>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--luna-muted)', lineHeight: 1.75 }}>{product.description}</p>
             </div>
-
-            {/* Case material */}
-            {product.caseMaterial && (
-              <div style={{ marginTop: '0.4rem', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: '0.5rem', padding: '0.75rem 0.875rem' }}>
-                <p style={{ margin: 0, fontSize: '0.575rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.25rem' }}>Case Material</p>
-                <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--luna-muted)', lineHeight: 1.65 }}>{product.caseMaterial}</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

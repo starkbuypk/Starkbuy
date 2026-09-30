@@ -53,7 +53,7 @@ export const ProductCard = memo(function ProductCard({ product }: Props) {
         onMouseEnter={() => product.hoverImage && setImgSrc(product.hoverImage)}
         onMouseLeave={() => setImgSrc(product.image)}
       >
-        {/* Image */}
+        {/* Image — full bleed, no card box */}
         <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', background: '#EBEBEB' }}>
           <img
             src={imgSrc.startsWith('data:') || imgSrc.startsWith('blob:') ? imgSrc : imgSrc + (imgSrc.includes('?') ? '&w=600' : '?w=600')}
@@ -63,111 +63,82 @@ export const ProductCard = memo(function ProductCard({ product }: Props) {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              transition: 'transform 300ms var(--ease-spring)',
+              transition: 'transform 400ms var(--ease-spring)',
             }}
-            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')}
+            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
             onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
           />
 
-          {/* Badges */}
-          <div style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          {/* Badges — top-left, sharp rectangle */}
+          <div style={{ position: 'absolute', top: '0.625rem', left: '0.625rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             {product.discountPercent > 0 && (
               <span className="badge badge-sale">{product.discountPercent}% OFF</span>
             )}
-            {product.newArrival && (
-              <span className="badge badge-new">New</span>
-            )}
-            {product.limited && (
-              <span className="badge badge-accent">Limited</span>
-            )}
-            {product.flashSale && (
-              <span className="badge badge-sale">Flash Sale</span>
-            )}
+            {product.newArrival && <span className="badge badge-new">New</span>}
+            {product.limited && <span className="badge badge-accent">Limited</span>}
+            {product.flashSale && <span className="badge badge-sale">Flash Sale</span>}
           </div>
 
-          {/* Out of stock overlay */}
+          {/* Out of stock */}
           {!product.inStock && (
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'rgba(26,22,20,0.55)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <span style={{ color: 'var(--luna-muted)', fontSize: '0.875rem', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Sold Out</span>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,14,12,0.50)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Sold Out</span>
             </div>
           )}
 
-          {/* Wishlist btn — reduced size so it doesn't compete with product image */}
+          {/* Wishlist */}
           <button
             onClick={handleWishlist}
             aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             style={{
-              position: 'absolute',
-              top: '0.625rem',
-              right: '0.625rem',
-              width: 30,
-              height: 30,
-              borderRadius: '50%',
-              background: wishlisted ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.75)',
-              border: '1px solid rgba(0,0,0,0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              position: 'absolute', top: '0.625rem', right: '0.625rem',
+              width: 28, height: 28,
+              background: 'rgba(255,255,255,0.90)',
+              border: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: wishlisted ? 'var(--luna-1)' : 'var(--luna-muted)',
               cursor: 'pointer',
-              transition: 'color 150ms, background 150ms',
+              transition: 'color 150ms',
             }}
           >
-            <IconHeart size={13} filled={wishlisted} />
+            <IconHeart size={12} filled={wishlisted} />
           </button>
         </div>
 
-        {/* Info — name first, then rating, then price, then Add to Bag */}
-        <div style={{ padding: '0.875rem 1rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-          <h3 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {/* Info — ruled, no padding box */}
+        <div style={{ paddingTop: '0.75rem', paddingBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <h3 className="font-display" style={{ margin: 0, fontSize: '1.0625rem', fontWeight: 600, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.01em' }}>
             {product.name}
           </h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-            <span style={{ color: '#f59e0b', display: 'flex' }}>
-              <IconStar size={12} />
-            </span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', fontVariantNumeric: 'tabular-nums' }}>
-              {liveRating} ({liveCount})
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.625rem' }}>
-            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: '0.9375rem', color: salePrice ? 'var(--luna-1)' : 'var(--luna-fg)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.125rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <span style={{ color: '#C9A84C', display: 'flex' }}>
+                <IconStar size={11} />
+              </span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                {liveRating} <span style={{ opacity: 0.6 }}>({liveCount})</span>
+              </span>
+            </div>
+            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, fontSize: '1rem', color: 'var(--luna-1)', letterSpacing: '-0.01em' }}>
               {formatPrice(salePrice ?? product.codPrice)}
             </span>
-            {salePrice && (
-              <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: '0.8125rem', color: 'var(--luna-muted)', textDecoration: 'line-through' }}>
-                {formatPrice(product.codPrice)}
-              </span>
-            )}
           </div>
+          {salePrice && (
+            <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: '0.75rem', color: 'var(--luna-muted)', textDecoration: 'line-through', alignSelf: 'flex-end' }}>
+              {formatPrice(product.codPrice)}
+            </span>
+          )}
           {product.inStock && (
             <button
               onClick={handleAddToCart}
-              className="add-to-bag-btn"
+              className="btn btn-primary"
               style={{
-                width: '100%',
-                background: 'var(--luna-fg)',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '0.4375rem',
-                padding: '0.5625rem 1rem',
-                fontSize: '0.8125rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                letterSpacing: '0.05em',
+                width: '100%', justifyContent: 'center',
+                fontSize: '0.75rem', letterSpacing: '0.08em',
                 textTransform: 'uppercase' as const,
-                fontFamily: 'DM Sans, sans-serif',
-                transition: 'background 150ms, transform 100ms',
+                minHeight: 38, padding: '0 1rem',
+                marginTop: '0.5rem',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--luna-1)'; e.currentTarget.style.color = '#111'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--luna-fg)'; e.currentTarget.style.color = '#FFF'; }}
             >
               Add to Bag
             </button>

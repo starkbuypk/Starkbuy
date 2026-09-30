@@ -2,19 +2,19 @@
 @import 'tailwindcss';
 
 :root {
-  /* White luxury × warm gold palette (TIMECRAFT style) */
-  --luna-1: #C9A84C;      /* warm gold — primary accent */
+  /* Precision-editorial luxury palette */
+  --luna-1: #C9A84C;      /* warm gold — singular accent */
   --luna-2: #A88A3A;      /* deeper gold */
   --luna-3: #8A6E2C;      /* dark gold / bronze */
-  --luna-4: #FFFFFF;      /* card / panel surface — white */
-  --luna-5: #F5F5F3;      /* page background — off-white */
-  --luna-fg: #1A1A1A;     /* near-black text */
-  --luna-muted: #777777;  /* muted grey text */
-  --luna-bg: linear-gradient(180deg, #FFFFFF 0%, #F5F5F3 100%);
-  --shadow-elevate: 0 4px 24px -4px rgba(0, 0, 0, 0.10);
-  --shadow-glow: 0 0 0 1px rgba(201, 168, 76, 0.4), 0 8px 32px -8px rgba(201, 168, 76, 0.22);
+  --luna-4: #FFFFFF;      /* surface white */
+  --luna-5: #F8F7F5;      /* page ground — barely warm */
+  --luna-fg: #0F0E0C;     /* rich near-black ink */
+  --luna-muted: #6B6B6B;  /* measured grey */
+  --shadow-elevate: 0 1px 0 rgba(0,0,0,0.07);
+  --shadow-glow: 0 0 0 1.5px var(--luna-1);
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --radius: 0.5rem;
+  --radius: 0.125rem;     /* sharp precision edges — 2px */
+  --rule: 1px solid rgba(15,14,12,0.10);  /* hairline rule */
 }
 
 * {
@@ -30,8 +30,6 @@ html {
 
 body {
   background: var(--luna-5);
-  background-image: var(--luna-bg);
-  background-attachment: fixed;
   color: var(--luna-fg);
   color-scheme: light;
   font-family: 'DM Sans', sans-serif;
@@ -106,12 +104,12 @@ body {
   color: var(--luna-2);
 }
 
-/* Glassmorphism */
+/* Frosted — nav / drawers only */
 .glass {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: inset 0 0 0 1px rgba(26, 26, 26, 0.08);
+  background: rgba(248, 247, 245, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: var(--rule);
 }
 
 /* Shimmer skeleton */
@@ -138,13 +136,12 @@ body {
   outline-offset: 2px;
 }
 
-/* Card hover glow */
+/* Card hover — subtle image lift only */
 .card-hover {
-  transition: box-shadow 150ms var(--ease-spring), transform 150ms var(--ease-spring);
+  transition: opacity 150ms;
 }
 .card-hover:hover {
-  box-shadow: var(--shadow-glow);
-  transform: translateY(-2px);
+  opacity: 0.88;
 }
 
 /* Button base */
@@ -153,15 +150,15 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  padding: 0.5rem 1.125rem;
+  padding: 0.6875rem 1.375rem;
   border-radius: var(--radius);
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.01em;
   cursor: pointer;
   transition: transform 150ms var(--ease-spring), box-shadow 150ms var(--ease-spring), background 150ms var(--ease-spring);
-  min-height: 36px;
+  min-height: 44px;
   user-select: none;
   text-decoration: none;
 }
@@ -174,13 +171,13 @@ body {
 }
 
 .btn-primary {
-  background: var(--luna-1);
-  color: #111111;
+  background: var(--luna-fg);
+  color: #FFFFFF;
   font-weight: 700;
   letter-spacing: 0.03em;
 }
 .btn-primary:hover {
-  box-shadow: var(--shadow-glow);
+  background: #2A2A28;
 }
 
 .btn-outline {
@@ -215,11 +212,37 @@ body {
   border-color: rgba(255,255,255,0.90);
 }
 
-/* Surface */
+/* Surface — flat white, ruled top */
 .surface {
   background: var(--luna-4);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-elevate);
+  border-top: var(--rule);
+}
+
+/* Chip — flat square selector (replaces pills/rounded chips) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0;
+  border: 1px solid rgba(15,14,12,0.14);
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--luna-fg);
+  cursor: pointer;
+  transition: border-color 120ms, background 120ms, color 120ms;
+}
+.chip:hover {
+  border-color: var(--luna-1);
+  color: var(--luna-1);
+}
+.chip.active {
+  border-color: var(--luna-1);
+  background: rgba(201,168,76,0.07);
+  color: var(--luna-fg);
+  font-weight: 600;
 }
 
 /* Toast */
@@ -246,14 +269,13 @@ body {
 .toast {
   pointer-events: auto;
   padding: 0.75rem 1rem;
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(14px);
-  box-shadow: inset 0 0 0 1px rgba(26, 26, 26, 0.1), var(--shadow-elevate);
-  font-size: 0.875rem;
-  color: var(--luna-fg);
+  border-radius: 0;
+  background: var(--luna-fg);
+  border-left: 3px solid var(--luna-1);
+  font-size: 0.8125rem;
+  color: rgba(255,255,255,0.90);
   animation: toast-in 200ms var(--ease-spring) forwards;
-  max-width: 320px;
+  max-width: 300px;
 }
 .toast.out {
   animation: toast-out 200ms var(--ease-spring) forwards;
@@ -261,12 +283,13 @@ body {
 
 /* Announcement bar */
 .announcement-bar {
-  background: #1A1A1A;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  font-size: 0.8125rem;
+  background: var(--luna-fg);
+  border-bottom: none;
+  font-size: 0.75rem;
   text-align: center;
   padding: 0.5rem 1rem;
-  color: #F0EDE6;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.82);
 }
 
 /* Drawer */
@@ -310,18 +333,17 @@ body {
   animation: slideIn 500ms var(--ease-spring) forwards;
 }
 
-/* Badge — solid fills for legibility over product photography */
+/* Badge — sharp rectangles, no radius */
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.1875rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.6875rem;
+  padding: 0.1875rem 0.4375rem;
+  border-radius: 0;
+  font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   border: none;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
 }
 
 .badge-accent {
@@ -339,28 +361,24 @@ body {
   color: #FFFFFF;
 }
 
-/* Product card */
+/* Product card — open layout, ruled not boxed */
 .product-card {
-  background: var(--luna-4);
-  border-radius: var(--radius);
+  background: transparent;
+  border-top: var(--rule);
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.06);
-  transition: box-shadow 150ms var(--ease-spring), transform 150ms var(--ease-spring), border-color 150ms;
+  transition: border-top-color 200ms;
+  position: relative;
 }
 .product-card:hover {
-  box-shadow: var(--shadow-glow);
-  transform: translateY(-3px);
-  border-color: rgba(201,168,76,0.22);
+  border-top-color: var(--luna-1);
 }
 
-/* ── Interactive surface card ──────────────────────────────────── */
-/* Use on any clickable/hoverable card that isn't a product card    */
+/* ── Interactive surface ─────────────────────────────────────────── */
 .surface-hover {
-  transition: box-shadow 160ms var(--ease-spring), transform 160ms var(--ease-spring), border-color 160ms;
+  transition: border-color 160ms;
 }
 .surface-hover:hover {
-  box-shadow: 0 0 0 1px rgba(201,168,76,0.3), 0 6px 24px -6px rgba(0,0,0,0.1);
-  transform: translateY(-1px);
+  border-color: rgba(201,168,76,0.5) !important;
 }
 
 /* ── Row hover (admin tables, list items) ──────────────────────── */
@@ -374,12 +392,11 @@ body {
 
 /* ── Stat tile hover ───────────────────────────────────────────── */
 .stat-hover {
-  transition: box-shadow 160ms var(--ease-spring), transform 160ms var(--ease-spring);
+  transition: border-color 160ms;
   cursor: default;
 }
 .stat-hover:hover {
-  box-shadow: 0 0 0 1px rgba(201,168,76,0.3), 0 8px 28px -8px rgba(201,168,76,0.12);
-  transform: translateY(-2px);
+  border-color: rgba(201,168,76,0.4) !important;
 }
 
 /* ── Link hover (text links in footer, nav, etc.) ──────────────── */
@@ -406,17 +423,16 @@ input[type="search"]:focus, textarea:focus, select:focus {
   outline: none !important;
 }
 
-/* ── Image card (category tiles, hero slides) ──────────────────── */
+/* ── Image card (category tiles) ───────────────────────────────── */
 .img-card {
-  transition: box-shadow 160ms var(--ease-spring), transform 160ms var(--ease-spring);
+  transition: opacity 160ms;
   overflow: hidden;
 }
 .img-card:hover {
-  box-shadow: 0 0 0 1px rgba(201,168,76,0.35), 0 12px 36px -8px rgba(0,0,0,0.15);
-  transform: translateY(-2px) scale(1.01);
+  opacity: 0.85;
 }
 .img-card:hover img {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
 /* Mobile safe area */
