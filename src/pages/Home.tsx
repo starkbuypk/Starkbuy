@@ -512,8 +512,8 @@ function RecentlyViewed() {
 export default function Home() {
   const { threshold: freeThreshold } = useShippingConfig();
   useSEO({
-    title: 'StarkBuy — Premium Watches in Pakistan | COD Available',
-    description: `Shop Analog, Chronograph, Sports & Automatic watches in Pakistan. Cash on delivery, free shipping above ${BRAND.currencySymbol} ${freeThreshold.toLocaleString()}. Genuine timepieces at the best prices.`,
+    title: 'Buy Luxury & Premium Watches for Men in Pakistan | StarkBuy',
+    description: `Shop Analog, Chronograph, Automatic, Sports & Luxury watches for men & women in Pakistan. Cash on delivery nationwide. Free shipping above ${BRAND.currencySymbol} ${freeThreshold.toLocaleString()}. Best prices at StarkBuy — Rawalpindi.`,
     canonical: '/',
     ogType: 'website',
     jsonLd: [
@@ -562,6 +562,10 @@ export default function Home() {
 
   return (
     <div style={{ paddingBottom: '4rem' }}>
+      {/* Visually hidden H1 for search engines — hero slide title is decorative */}
+      <h1 style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>
+        Buy Luxury &amp; Premium Watches for Men in Pakistan — StarkBuy
+      </h1>
       <HeroSlider />
       <UspStrip />
       <CategoryStrip />

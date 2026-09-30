@@ -361,10 +361,20 @@ export default function ProductDetail() {
     if (product) recordView(product.id);
   }, [product?.id]);
 
+  // Compute live rating values for schema (from loaded reviews or fall back to stored)
+  const liveAvg = reviewsLoaded && liveReviews.length > 0
+    ? +(liveReviews.reduce((s, r) => s + r.rating, 0) / liveReviews.length).toFixed(1)
+    : product?.rating ?? 0;
+  const liveCount = reviewsLoaded ? liveReviews.length : (product?.reviewCount ?? 0);
+
   // SEO — must run unconditionally (hooks rule); guards handle missing product
   useSEO({
-    title: product ? `${product.name} — ${product.brand} | StarkBuy` : 'Watch not found | StarkBuy',
-    description: product ? `${product.description.slice(0, 155)}...` : '',
+    title: product
+      ? `${product.name} — Buy ${product.category} Watch Price in Pakistan | StarkBuy`
+      : 'Watch not found | StarkBuy',
+    description: product
+      ? `Buy ${product.name} ${product.category} watch in Pakistan. ${product.movement ? `Movement: ${product.movement}.` : ''} ${product.waterResistance ? `Water resistance: ${product.waterResistance}.` : ''} Price: Rs. ${(product.discountPercent > 0 ? Math.round(product.codPrice * (1 - product.discountPercent / 100)) : product.codPrice).toLocaleString()}. Cash on delivery. ${product.description.slice(0, 80)}.`
+      : '',
     canonical: product ? `/product/${product.slug}` : '',
     ogImage: product?.image,
     ogType: 'product',
@@ -374,17 +384,37 @@ export default function ProductDetail() {
       name: product.name,
       description: product.description,
       brand: { '@type': 'Brand', name: product.brand },
-      image: product.image,
+      image: [product.image, ...(product.gallery ?? [])].filter(Boolean),
       sku: product.id,
+      mpn: product.id,
+      category: `${product.category} Watches`,
+      ...(product.movement ? { additionalProperty: [{ '@type': 'PropertyValue', name: 'Movement', value: product.movement }] } : {}),
       offers: {
         '@type': 'Offer',
         priceCurrency: 'PKR',
         price: product.discountPercent > 0 ? Math.round(product.codPrice * (1 - product.discountPercent / 100)) : product.codPrice,
+        priceValidUntil: new Date(Date.now() + 30 * 86400_000).toISOString().split('T')[0],
         availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-        seller: { '@type': 'Organization', name: 'StarkBuy' },
+        itemCondition: 'https://schema.org/NewCondition',
+        seller: { '@type': 'Organization', name: 'StarkBuy', url: 'https://www.starkbuypk.com' },
         url: `https://www.starkbuypk.com/product/${product.slug}`,
+        shippingDetails: {
+          '@type': 'OfferShippingDetails',
+          shippingRate: { '@type': 'MonetaryAmount', value: 0, currency: 'PKR' },
+          deliveryTime: { '@type': 'ShippingDeliveryTime', handlingTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 2, unitCode: 'DAY' }, transitTime: { '@type': 'QuantitativeValue', minValue: 2, maxValue: 5, unitCode: 'DAY' } },
+          shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'PK' },
+        },
+        hasMerchantReturnPolicy: {
+          '@type': 'MerchantReturnPolicy',
+          returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+          merchantReturnDays: 7,
+          returnMethod: 'https://schema.org/ReturnByMail',
+          returnFees: 'https://schema.org/FreeReturn',
+        },
       },
-      aggregateRating: { '@type': 'AggregateRating', ratingValue: product.rating, reviewCount: product.reviewCount },
+      ...(liveCount > 0 ? {
+        aggregateRating: { '@type': 'AggregateRating', ratingValue: liveAvg, reviewCount: liveCount, bestRating: 5, worstRating: 1 },
+      } : {}),
     } : undefined,
   });
 
@@ -485,7 +515,7 @@ export default function ProductDetail() {
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                   </div>
                 ) : (
-                  <img src={item.src.startsWith('data:') || item.src.startsWith('blob:') ? item.src : item.src + (item.src.includes('?') ? '&w=144' : '?w=144')} alt={`View ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={item.src.startsWith('data:') || item.src.startsWith('blob:') ? item.src : item.src + (item.src.includes('?') ? '&w=144' : '?w=144')} alt={`${product.name} ${product.category} Watch Image ${i + 1} — StarkBuy Pakistan`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 )}
               </button>
             ))}
@@ -506,7 +536,7 @@ export default function ProductDetail() {
               ) : (
                 <img
                   src={activeMedia?.src ?? product.image}
-                  alt={product.name}
+                  alt={`${product.name} ${product.category} Watch Price in Pakistan — StarkBuy`}
                   onClick={() => {
                     const imgItems = mediaItems.filter(m => m.type === 'image');
                     const clickedSrc = activeMedia?.src ?? product.image;

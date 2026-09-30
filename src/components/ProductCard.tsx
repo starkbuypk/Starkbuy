@@ -57,7 +57,7 @@ export const ProductCard = memo(function ProductCard({ product }: Props) {
         <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', background: '#EBEBEB' }}>
           <img
             src={imgSrc.startsWith('data:') || imgSrc.startsWith('blob:') ? imgSrc : imgSrc + (imgSrc.includes('?') ? '&w=600' : '?w=600')}
-            alt={product.name}
+            alt={`${product.name} ${product.category} Watch Price in Pakistan — StarkBuy`}
             loading="lazy"
             style={{
               width: '100%',

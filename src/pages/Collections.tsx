@@ -190,21 +190,21 @@ export default function Collections() {
 
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.75rem' }}>
         <h1 className="font-display" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 600, letterSpacing: '-0.02em', margin: 0 }}>
-          {activeCategory === 'All' ? 'All Watches' : activeCategory}
+          {activeCategory === 'All'
+            ? 'Buy Watches Online in Pakistan'
+            : `${activeCategory} Watches in Pakistan`}
         </h1>
       </div>
 
-      {/* Category pills */}
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.75rem' }}>
+      {/* Category chips — flat, no pills */}
+      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '1.75rem' }}>
         {(['All', ...CATEGORIES] as const).map(cat => (
           <button
             key={cat}
             onClick={() => handleCategoryChange(cat)}
-            style={{ padding: '0.3125rem 0.875rem', borderRadius: '999px', fontSize: '0.8125rem', fontWeight: 500, fontFamily: 'DM Sans, sans-serif', border: activeCategory === cat ? '1px solid var(--luna-1)' : '1px solid rgba(26,22,20,0.10)', background: activeCategory === cat ? 'rgba(26,22,20,0.09)' : 'transparent', color: activeCategory === cat ? 'var(--luna-1)' : 'var(--luna-muted)', cursor: 'pointer', transition: 'all 150ms', minHeight: 34 }}
-            onMouseEnter={e => { if (activeCategory !== cat) { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.35)'; e.currentTarget.style.color = 'var(--luna-fg)'; } }}
-            onMouseLeave={e => { if (activeCategory !== cat) { e.currentTarget.style.borderColor = 'rgba(26,22,20,0.10)'; e.currentTarget.style.color = 'var(--luna-muted)'; } }}
+            className={`chip${activeCategory === cat ? ' active' : ''}`}
           >
-            {cat}
+            {cat === 'All' ? 'All Watches' : cat}
           </button>
         ))}
       </div>
@@ -217,9 +217,9 @@ export default function Collections() {
             <button
               key={g}
               onClick={() => { setActiveGender(g); setPage(1); }}
-              style={{ padding: '0.3125rem 0.875rem', borderRadius: 'var(--radius)', fontSize: '0.8125rem', fontFamily: 'DM Sans, sans-serif', border: activeGender === g ? '1px solid var(--luna-2)' : '1px solid rgba(26,22,20,0.08)', background: activeGender === g ? 'rgba(154,109,90,0.10)' : 'transparent', color: activeGender === g ? 'var(--luna-2)' : 'var(--luna-muted)', cursor: 'pointer', transition: 'all 150ms', minHeight: 36 }}
+              className={`chip${activeGender === g ? ' active' : ''}`}
             >
-              {g}
+              {g === 'All' ? 'All Genders' : g}
             </button>
           ))}
         </div>
@@ -251,6 +251,47 @@ export default function Collections() {
 
       {/* Pagination */}
       <Pagination page={page} total={filtered.length} pageSize={PAGE_SIZE} onChange={setPage} />
+
+      {/* SEO category description — informational text for Google */}
+      <CategorySeoText category={activeCategory} />
+    </div>
+  );
+}
+
+const CATEGORY_SEO: Record<string, string> = {
+  All: `Explore StarkBuy's complete collection of premium watches for men and women in Pakistan. Whether you're looking for an everyday Analog watch, a sporty Chronograph, an elegant Automatic, or a stylish Couple timepiece — we have it all. Every watch ships nationwide with Cash on Delivery available across Pakistan, including Rawalpindi, Islamabad, Lahore, Karachi, and Peshawar. Enjoy free delivery on orders above Rs. 2,000, a 12-month warranty on every watch, and a 7-day hassle-free return policy.`,
+
+  Analog: `Discover our curated range of men's and women's Analog watches in Pakistan. Analog watches combine classic design with reliable timekeeping — perfect for both formal occasions and daily wear. Our collection features stainless steel cases, leather and steel bracelet straps, mineral and sapphire glass options, and Quartz movements for precise accuracy. Shop Analog watches with cash on delivery across Pakistan. Prices start from Rs. 2,500 with free shipping above Rs. 2,000.`,
+
+  Chronograph: `Explore premium Chronograph watches for men in Pakistan at StarkBuy. Chronograph timepieces feature precision multi-dial stopwatch functions, tachymeter bezels, and bold dial designs — engineered for the detail-oriented wearer. Available in 40mm–46mm case sizes with stainless steel and silicone strap options. All Chronograph watches come with a 12-month warranty and cash on delivery across Pakistan. Shop now and get free delivery above Rs. 2,000.`,
+
+  Automatic: `Browse Automatic mechanical watches in Pakistan at the best prices. Automatic watches are powered by your wrist's natural motion — no battery needed. Our range features exhibition casebacks, skeleton dials, and precision self-winding movements. Perfect for watch enthusiasts and collectors. Available in multiple case sizes (38mm–44mm) with leather and steel bracelet options. Order with cash on delivery, free shipping nationwide above Rs. 2,000.`,
+
+  Sports: `Find durable Sports watches for men in Pakistan at StarkBuy. Built for active lifestyles, our Sports watch collection features water resistance up to 30–50m, shock-resistant cases, silicone and nylon straps, and luminous dials for low-light visibility. Ideal for outdoor activities, gym wear, or casual daily use. Shop Sports watches online with cash on delivery across Pakistan. Free shipping above Rs. 2,000.`,
+
+  Luxury: `Shop our premium Luxury watch collection in Pakistan. These elegant timepieces are crafted for those who appreciate refined craftsmanship — featuring sapphire crystal glass, genuine leather straps, precision Swiss-style movements, and polished stainless steel cases. Perfect for business, formal events, or as a meaningful gift. Cash on delivery available across Pakistan. Free delivery above Rs. 2,000.`,
+
+  'A+ Replica': `StarkBuy offers a curated selection of high-quality A+ grade replica-style watches in Pakistan. Designed to replicate the look and feel of iconic international timepieces, these watches feature accurate movements, solid case construction, and premium finishing. Available with cash on delivery nationwide. Free shipping above Rs. 2,000.`,
+
+  Smart: `Explore Smart watches in Pakistan available at StarkBuy. Combining technology with style, our Smart watches offer health tracking, notification alerts, and app connectivity alongside classic watch aesthetics. Available in multiple color and strap options. Order online with cash on delivery across Pakistan and enjoy free delivery above Rs. 2,000.`,
+
+  Ladies: `Discover our Ladies watch collection in Pakistan — elegant, refined timepieces designed for women. From slim minimalist dials to jewel-embellished designs, our women's watches come in rose gold, silver, and two-tone finishes with leather and mesh bracelet straps. Perfect as a gift or personal treat. Cash on delivery available nationwide. Free shipping above Rs. 2,000.`,
+
+  Couple: `Shop Couple watches in Pakistan at StarkBuy — matching his-and-hers timepiece sets perfect for weddings, anniversaries, and gifts. Our Couple watch sets feature coordinating designs in matching finishes with complementary case sizes for men and women. Available in Analog and Quartz styles. Order online with cash on delivery and free delivery above Rs. 2,000.`,
+
+  Sale: `Browse discounted watches on sale at StarkBuy Pakistan. Get the best deals on premium Analog, Chronograph, Sports, and Luxury watches at reduced prices. All sale watches come with the same 12-month warranty and 7-day return policy. Cash on delivery available nationwide. Free shipping above Rs. 2,000. Stock is limited — shop now before they sell out.`,
+};
+
+function CategorySeoText({ category }: { category: string }) {
+  const text = CATEGORY_SEO[category] || CATEGORY_SEO['All'];
+  return (
+    <div style={{ marginTop: '3rem', borderTop: 'var(--rule)', paddingTop: '2rem' }}>
+      <p className="eyebrow" style={{ margin: '0 0 0.75rem', color: 'var(--luna-muted)' }}>
+        About {category === 'All' ? 'Our Collection' : `${category} Watches`}
+      </p>
+      <p style={{ fontSize: '0.875rem', color: 'var(--luna-muted)', lineHeight: 1.8, maxWidth: 760 }}>
+        {text}
+      </p>
     </div>
   );
 }
