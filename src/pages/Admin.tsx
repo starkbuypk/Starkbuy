@@ -452,27 +452,55 @@ function ProductModal({ initial, onClose, onSave }: {
     setForm(prev => ({ ...prev, [field]: val }));
   }
 
+  const usingVariants = colorVariants.length > 0;
+
   async function handleSave() {
     if (!form.name.trim()) { setErr('Product name is required'); return; }
     if (form.name.trim().length > 120) { setErr('Product name too long (max 120 characters)'); return; }
-    if (!form.image.trim()) { setErr('Main image is required — upload a file or paste a URL'); return; }
     if (form.codPrice <= 0 || form.codPrice > 10_000_000) { setErr('Price must be between 1 and 10,000,000'); return; }
     if (form.discountPercent < 0 || form.discountPercent > 80) { setErr('Discount must be between 0% and 80%'); return; }
 
+    // Derive main image + gallery + video from color variants or fallback fields
+    let mainImage = form.image;
+    let gallery: string[] = [form.image, gallery2, gallery3].filter(Boolean);
+    let finalVideo: string | undefined = videoUrl || undefined;
+
+    if (usingVariants) {
+      const first = colorVariants[0];
+      if (!first?.images[0]) { setErr('Add at least one image for the first color variant'); return; }
+      mainImage = first.images[0];
+      gallery = first.images.filter(Boolean);
+      finalVideo = first.video || undefined;
+    } else {
+      if (!mainImage.trim()) { setErr('Main image is required — upload a file or paste a URL'); return; }
+    }
+
     const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + form.id.slice(-6);
-    const gallery = [form.image, gallery2, gallery3].filter(Boolean);
     try {
-      await onSave({ ...form, slug, gallery, video: videoUrl || undefined, colorVariants: colorVariants.length ? colorVariants : undefined });
-    } catch (e: unknown) {
+      await onSave({ ...form, image: mainImage, slug, gallery, video: finalVideo, colorVariants: colorVariants.length ? colorVariants : undefined });
+    } catch {
       setErr('Save failed. Check your internet connection and try again.');
     }
+  }
+
+  function updateVariantImage(colorKey: string, imgIdx: number, url: string) {
+    setColorVariants(prev => prev.map(v => {
+      if (v.color !== colorKey) return v;
+      const imgs = [...(v.images ?? [])];
+      if (url) { imgs[imgIdx] = url; } else { imgs.splice(imgIdx, 1); }
+      return { ...v, images: imgs.filter(Boolean) };
+    }));
+  }
+
+  function updateVariantVideo(colorKey: string, url: string) {
+    setColorVariants(prev => prev.map(v => v.color !== colorKey ? v : { ...v, video: url || undefined }));
   }
 
   return (
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(26,22,20,0.55)', zIndex: 500, backdropFilter: 'blur(4px)' }} />
       <div style={{ position: 'fixed', inset: 0, zIndex: 501, overflowY: 'auto', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '2rem 1rem' }}>
-        <div style={{ width: '100%', maxWidth: 720, background: 'var(--luna-5)', border: '1px solid rgba(26,22,20,0.10)', borderRadius: '1rem', padding: '2rem', position: 'relative' }}>
+        <div style={{ width: '100%', maxWidth: 740, background: 'var(--luna-5)', border: '1px solid rgba(26,22,20,0.10)', borderRadius: '1rem', padding: '2rem', position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
             <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, fontFamily: "'Cormorant Garamond', serif" }}>
               {initial ? 'Edit Watch' : 'Add New Watch'}
@@ -482,38 +510,17 @@ function ProductModal({ initial, onClose, onSave }: {
 
           {err && <p style={{ margin: '0 0 1rem', color: '#f87171', fontSize: '0.875rem', background: 'rgba(248,113,113,0.08)', padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid rgba(248,113,113,0.2)' }}>{err}</p>}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <FieldInput label="Watch Name *" value={form.name} onChange={v => set('name', v)} placeholder="e.g. Nocturne Chronograph Pro" maxLength={120} />
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
 
-            <FieldSelect<WatchCategory> label="Category *" value={form.category} onChange={v => set('category', v)} options={ALL_CATEGORIES} />
-            <FieldSelect<WatchGender> label="Gender *" value={form.gender} onChange={v => set('gender', v)} options={ALL_GENDERS} />
-
-            <FieldInput label="Price (Rs.) *" value={form.codPrice || ''} onChange={v => set('codPrice', Number(v))} type="number" placeholder="e.g. 19999" />
-            <FieldInput label="Discount %" value={form.discountPercent || ''} onChange={v => set('discountPercent', Math.min(80, Math.max(0, Number(v))))} type="number" placeholder="0 – 80" />
-
-            <div style={{ gridColumn: '1 / -1' }}>
-              <ImageUploadField label="Main Image *" value={form.image} onChange={v => set('image', v)} />
-            </div>
-            <ImageUploadField label="Gallery Image 2" value={gallery2} onChange={setGallery2} compact />
-            <ImageUploadField label="Gallery Image 3" value={gallery3} onChange={setGallery3} compact />
-
-            <div style={{ gridColumn: '1 / -1' }}>
-              <VideoUploadField label="Product Video (optional — shows as 4th media item)" value={videoUrl} onChange={setVideoUrl} />
-            </div>
-
-            <div style={{ gridColumn: '1 / -1' }}>
-              <CheckGroup<Strap> label="Strap Options" options={ALL_STRAPS} selected={form.strapOptions} onChange={v => set('strapOptions', v)} />
-            </div>
-
-            {/* ── Color Variants ─────────────────────────────── */}
-            <div style={{ gridColumn: '1 / -1', background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(26,22,20,0.09)', borderRadius: '0.75rem', padding: '1rem 1.125rem' }}>
-              <p style={{ fontSize: '0.75rem', color: 'var(--luna-muted)', fontWeight: 700, marginBottom: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Watch Color Variants</p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--luna-muted)', marginBottom: '0.875rem', margin: '0 0 0.875rem' }}>Select all available colors → upload images for each. Customer clicks a color → those images show. Each color needs its own images separately.</p>
+            {/* ── STEP 1: Color Variants (TOP) ──────────────────── */}
+            <div style={{ background: 'rgba(201,168,76,0.04)', border: '1.5px solid rgba(201,168,76,0.25)', borderRadius: '0.875rem', padding: '1.125rem 1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--luna-1)' }}>Step 1 — Watch Color Variants</span>
+              </div>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)', margin: '0 0 0.875rem' }}>Select each available color → upload 3 images + 1 video for it. Customer clicks a color → those images & video show.</p>
 
               {/* Color toggle buttons */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: colorVariants.length ? '1rem' : 0 }}>
                 {ALL_COLORS.map(c => {
                   const isActive = colorVariants.some(v => v.color === c.label);
                   return (
@@ -521,9 +528,9 @@ function ProductModal({ initial, onClose, onSave }: {
                       if (isActive) {
                         setColorVariants(prev => prev.filter(v => v.color !== c.label));
                       } else {
-                        setColorVariants(prev => [...prev, { color: c.label, hex: c.hex, images: [] }]);
+                        setColorVariants(prev => [...prev, { color: c.label, hex: c.hex, images: [], video: undefined }]);
                       }
-                    }} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.7rem', borderRadius: '2rem', border: isActive ? '2px solid var(--luna-1)' : '1.5px solid rgba(26,22,20,0.18)', background: isActive ? 'rgba(201,168,76,0.12)' : 'transparent', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.8125rem', fontWeight: isActive ? 700 : 400, color: 'var(--luna-fg)', transition: 'all 120ms' }}>
+                    }} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.75rem', borderRadius: '2rem', border: isActive ? '2px solid var(--luna-1)' : '1.5px solid rgba(26,22,20,0.18)', background: isActive ? 'rgba(201,168,76,0.14)' : 'transparent', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.8125rem', fontWeight: isActive ? 700 : 400, color: 'var(--luna-fg)', transition: 'all 120ms' }}>
                       <span style={{ width: 13, height: 13, borderRadius: '50%', background: c.hex, border: '1px solid rgba(0,0,0,0.18)', flexShrink: 0 }} />
                       {c.label}
                     </button>
@@ -531,51 +538,80 @@ function ProductModal({ initial, onClose, onSave }: {
                 })}
               </div>
 
-              {/* Per-color image upload */}
+              {/* Per-color: 3 images + 1 video */}
               {colorVariants.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {colorVariants.map((variant, vi) => (
-                    <div key={variant.color} style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(26,22,20,0.10)', borderRadius: '0.625rem', padding: '0.875rem 1rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                  {colorVariants.map(variant => (
+                    <div key={variant.color} style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(26,22,20,0.10)', borderRadius: '0.625rem', padding: '0.875rem 1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                         <span style={{ width: 16, height: 16, borderRadius: '50%', background: variant.hex, border: '1px solid rgba(0,0,0,0.18)', flexShrink: 0 }} />
-                        <p style={{ margin: 0, fontWeight: 700, fontSize: '0.875rem' }}>{variant.color} — Images</p>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--luna-muted)' }}>(upload 1–3 images for this color)</span>
+                        <span style={{ fontWeight: 700, fontSize: '0.875rem' }}>{variant.color}</span>
+                        <span style={{ fontSize: '0.75rem', color: variant.images[0] ? '#3A7A38' : 'var(--luna-muted)' }}>
+                          {variant.images[0] ? `✓ ${variant.images.filter(Boolean).length} image${variant.images.filter(Boolean).length !== 1 ? 's' : ''}${variant.video ? ' + video' : ''}` : 'No images yet'}
+                        </span>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.625rem' }}>
+                      {/* 3 images */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
                         {[0, 1, 2].map(imgIdx => (
                           <ImageUploadField
                             key={imgIdx}
-                            label={imgIdx === 0 ? 'Main image *' : `Image ${imgIdx + 1}`}
+                            label={imgIdx === 0 ? 'Image 1 *' : `Image ${imgIdx + 1}`}
                             value={variant.images[imgIdx] ?? ''}
-                            onChange={url => {
-                              const colorKey = variant.color;
-                              setColorVariants(prev => prev.map(v => {
-                                if (v.color !== colorKey) return v;
-                                const imgs = [...(v.images ?? [])];
-                                if (url) { imgs[imgIdx] = url; } else { imgs.splice(imgIdx, 1); }
-                                return { ...v, images: imgs.filter(Boolean) };
-                              }));
-                            }}
+                            onChange={url => updateVariantImage(variant.color, imgIdx, url)}
                             compact
                           />
                         ))}
                       </div>
+                      {/* Video */}
+                      <VideoUploadField
+                        label={`${variant.color} — Video (optional)`}
+                        value={variant.video ?? ''}
+                        onChange={url => updateVariantVideo(variant.color, url)}
+                      />
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            <div style={{ gridColumn: '1 / -1' }}>
-              <FieldTextarea label="Description" value={form.description} onChange={v => set('description', v)} rows={3} maxLength={2000} />
+            {/* ── STEP 2: Basic info ────────────────────────────── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <FieldInput label="Watch Name *" value={form.name} onChange={v => set('name', v)} placeholder="e.g. Nocturne Chronograph Pro" maxLength={120} />
+              </div>
+              <FieldSelect<WatchCategory> label="Category *" value={form.category} onChange={v => set('category', v)} options={ALL_CATEGORIES} />
+              <FieldSelect<WatchGender> label="Gender *" value={form.gender} onChange={v => set('gender', v)} options={ALL_GENDERS} />
+              <FieldInput label="Price (Rs.) *" value={form.codPrice || ''} onChange={v => set('codPrice', Number(v))} type="number" placeholder="e.g. 19999" />
+              <FieldInput label="Discount %" value={form.discountPercent || ''} onChange={v => set('discountPercent', Math.min(80, Math.max(0, Number(v))))} type="number" placeholder="0 – 80" />
             </div>
 
-            <FieldInput label="Movement" value={form.movement} onChange={v => set('movement', v)} placeholder="e.g. Japanese Miyota Quartz" maxLength={80} />
-            <FieldInput label="Case Material" value={form.caseMaterial} onChange={v => set('caseMaterial', v)} placeholder="e.g. 316L Stainless Steel" maxLength={80} />
-            <FieldInput label="Water Resistance" value={form.waterResistance} onChange={v => set('waterResistance', v)} placeholder="e.g. 50m (5 ATM)" maxLength={40} />
+            {/* ── Fallback images (only when no color variants) ── */}
+            {!usingVariants && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <ImageUploadField label="Main Image *" value={form.image} onChange={v => set('image', v)} />
+                </div>
+                <ImageUploadField label="Gallery Image 2" value={gallery2} onChange={setGallery2} compact />
+                <ImageUploadField label="Gallery Image 3" value={gallery3} onChange={setGallery3} compact />
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <VideoUploadField label="Product Video (optional)" value={videoUrl} onChange={setVideoUrl} />
+                </div>
+              </div>
+            )}
+
+            {/* ── Strap + Description + Specs ───────────────────── */}
+            <CheckGroup<Strap> label="Strap Options" options={ALL_STRAPS} selected={form.strapOptions} onChange={v => set('strapOptions', v)} />
+
+            <FieldTextarea label="Description" value={form.description} onChange={v => set('description', v)} rows={3} maxLength={2000} />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <FieldInput label="Movement" value={form.movement} onChange={v => set('movement', v)} placeholder="e.g. Japanese Miyota Quartz" maxLength={80} />
+              <FieldInput label="Case Material" value={form.caseMaterial} onChange={v => set('caseMaterial', v)} placeholder="e.g. 316L Stainless Steel" maxLength={80} />
+              <FieldInput label="Water Resistance" value={form.waterResistance} onChange={v => set('waterResistance', v)} placeholder="e.g. 50m (5 ATM)" maxLength={40} />
+            </div>
 
             {/* Flags */}
-            <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '2rem', flexWrap: 'wrap', padding: '0.875rem 1rem', background: 'rgba(0,0,0,0.03)', borderRadius: '0.625rem', border: '1px solid rgba(26,22,20,0.08)' }}>
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', padding: '0.875rem 1rem', background: 'rgba(0,0,0,0.03)', borderRadius: '0.625rem', border: '1px solid rgba(26,22,20,0.08)' }}>
               {([['newArrival', 'New Arrival'], ['featured', 'Featured'], ['flashSale', 'Flash Sale'], ['limited', 'Limited Edition'], ['inStock', 'In Stock']] as const).map(([field, label]) => (
                 <label key={field} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--luna-muted)' }}>
                   <Toggle checked={!!form[field]} onChange={v => set(field, v)} />

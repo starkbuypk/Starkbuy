@@ -4,6 +4,7 @@ export interface ColorVariant {
   color: string;
   hex: string;
   images: string[];
+  video?: string;
 }
 export type WatchGender = 'Men' | 'Women' | 'Unisex';
 export type CaseSize = '36mm' | '38mm' | '40mm' | '42mm' | '44mm' | '46mm';

@@ -457,10 +457,11 @@ export default function ProductDetail() {
       {(() => {
         const activeVariant = product.colorVariants?.find(v => v.color === selectedColor);
         const variantImages = activeVariant?.images?.filter(Boolean) ?? [];
+        const variantVideo = activeVariant?.video || product.video;
         const baseImages = variantImages.length > 0 ? variantImages : product.gallery;
         const mediaItems: { type: 'image' | 'video'; src: string }[] = [
           ...baseImages.map(src => ({ type: 'image' as const, src })),
-          ...(product.video ? [{ type: 'video' as const, src: product.video }] : []),
+          ...(variantVideo ? [{ type: 'video' as const, src: variantVideo }] : []),
         ];
         const activeMedia = mediaItems[activeImg] ?? mediaItems[0];
         const hasPrev = activeImg > 0;
@@ -500,7 +501,7 @@ export default function ProductDetail() {
               {activeMedia?.type === 'video' ? (
                 <VideoPlayer
                   src={activeMedia.src}
-                  poster={product.gallery[0] ?? product.image ?? ''}
+                  poster={baseImages[0] ?? product.image ?? ''}
                 />
               ) : (
                 <img
