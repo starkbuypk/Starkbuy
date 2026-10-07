@@ -126,10 +126,15 @@ export default function Collections() {
   // Set initial category from URL param once categories load from Supabase
   useEffect(() => {
     if (!category) return;
-    const match = CATEGORIES.find(c => c.toLowerCase().replace(/[^a-z]/g, '') === category.replace(/[^a-z]/g, ''));
-    if (match) setActiveCategory(match);
+    const normalizedParam = category.toLowerCase().replace(/[^a-z]/g, '');
+    const configuredCategory = (allCats ?? []).find(c => {
+      const configuredSlug = c.to.split('/').filter(Boolean).pop() ?? '';
+      const labelSlug = c.label.toLowerCase().replace(/[^a-z]/g, '');
+      return configuredSlug.toLowerCase().replace(/[^a-z]/g, '') === normalizedParam || labelSlug === normalizedParam;
+    });
+    if (configuredCategory) setActiveCategory(configuredCategory.label as WatchCategory);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, CATEGORIES.length]);
+  }, [category, allCats]);
 
   const catLabel = activeCategory === 'All' ? 'All Watches' : activeCategory;
   useSEO({

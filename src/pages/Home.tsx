@@ -523,7 +523,7 @@ export default function Home() {
         name: 'StarkBuy',
         url: 'https://www.starkbuypk.com',
         logo: 'https://www.starkbuypk.com/og-cover.jpg',
-        contactPoint: { '@type': 'ContactPoint', telephone: '+923235901200', contactType: 'customer service', areaServed: 'PK', availableLanguage: ['English', 'Urdu'] },
+        contactPoint: { '@type': 'ContactPoint', telephone: BRAND.whatsapp, contactType: 'customer service', areaServed: 'PK', availableLanguage: ['English', 'Urdu'] },
         sameAs: ['https://www.instagram.com/starkbuypk', 'https://www.facebook.com/share/1GocVvCj5s/', 'https://www.tiktok.com/@starkbuy'],
       },
       {
@@ -532,7 +532,7 @@ export default function Home() {
         name: 'StarkBuy',
         description: 'Premium watch store in Pakistan offering Analog, Chronograph, Sports and Automatic watches with cash on delivery across Pakistan.',
         url: 'https://www.starkbuypk.com',
-        telephone: '+923235901200',
+        telephone: BRAND.whatsapp,
         email: 'starkbuypk@gmail.com',
         areaServed: { '@type': 'Country', name: 'Pakistan' },
         currenciesAccepted: 'PKR',
