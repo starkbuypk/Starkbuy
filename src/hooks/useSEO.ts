@@ -53,7 +53,7 @@ export function useSEO({ title, description, canonical, ogImage, ogType = 'websi
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
   const canonicalUrl = canonical ? `${SITE}${canonical}` : SITE;
   const image = ogImage || DEFAULT_OG_IMAGE;
-  const desc = description || 'Shop premium watches in Pakistan. Cash on delivery. Free shipping above Rs. 2,000. Analog, Chronograph, Sports, Automatic & more.';
+  const desc = description || 'Shop premium watches in Pakistan. Cash on delivery and free shipping available. Analog, Chronograph, Sports, Automatic & more.';
 
   useEffect(() => {
     document.title = fullTitle;

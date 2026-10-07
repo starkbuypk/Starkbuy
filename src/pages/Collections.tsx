@@ -258,36 +258,36 @@ export default function Collections() {
       <Pagination page={page} total={filtered.length} pageSize={PAGE_SIZE} onChange={setPage} />
 
       {/* SEO category description — informational text for Google */}
-      <CategorySeoText category={activeCategory} />
+      <CategorySeoText category={activeCategory} freeShippingThreshold={freeShipThreshold} />
     </div>
   );
 }
 
 const CATEGORY_SEO: Record<string, string> = {
-  All: `Explore StarkBuy's complete collection of premium watches for men and women in Pakistan. Whether you're looking for an everyday Analog watch, a sporty Chronograph, an elegant Automatic, or a stylish Couple timepiece — we have it all. Every watch ships nationwide with Cash on Delivery available across Pakistan, including Rawalpindi, Islamabad, Lahore, Karachi, and Peshawar. Enjoy free delivery on orders above Rs. 2,000, a 12-month warranty on every watch, and a 7-day hassle-free return policy.`,
+  All: `Explore StarkBuy's complete collection of premium watches for men and women in Pakistan. Whether you're looking for an everyday Analog watch, a sporty Chronograph, an elegant Automatic, or a stylish Couple timepiece — we have it all. Every watch ships nationwide with Cash on Delivery available across Pakistan, including Rawalpindi, Islamabad, Lahore, Karachi, and Peshawar. Every watch includes a 12-month warranty and a 7-day hassle-free return policy.`,
 
-  Analog: `Discover our curated range of men's and women's Analog watches in Pakistan. Analog watches combine classic design with reliable timekeeping — perfect for both formal occasions and daily wear. Our collection features stainless steel cases, leather and steel bracelet straps, mineral and sapphire glass options, and Quartz movements for precise accuracy. Shop Analog watches with cash on delivery across Pakistan. Prices start from Rs. 2,500 with free shipping above Rs. 2,000.`,
+  Analog: `Discover our curated range of men's and women's Analog watches in Pakistan. Analog watches combine classic design with reliable timekeeping — perfect for both formal occasions and daily wear. Our collection features stainless steel cases, leather and steel bracelet straps, mineral and sapphire glass options, and Quartz movements for precise accuracy. Shop Analog watches with cash on delivery across Pakistan.`,
 
-  Chronograph: `Explore premium Chronograph watches for men in Pakistan at StarkBuy. Chronograph timepieces feature precision multi-dial stopwatch functions, tachymeter bezels, and bold dial designs — engineered for the detail-oriented wearer. Available in 40mm–46mm case sizes with stainless steel and silicone strap options. All Chronograph watches come with a 12-month warranty and cash on delivery across Pakistan. Shop now and get free delivery above Rs. 2,000.`,
+  Chronograph: `Explore premium Chronograph watches for men in Pakistan at StarkBuy. Chronograph timepieces feature precision multi-dial stopwatch functions, tachymeter bezels, and bold dial designs — engineered for the detail-oriented wearer. Available in 40mm–46mm case sizes with stainless steel and silicone strap options. All Chronograph watches come with a 12-month warranty and cash on delivery across Pakistan.`,
 
-  Automatic: `Browse Automatic mechanical watches in Pakistan at the best prices. Automatic watches are powered by your wrist's natural motion — no battery needed. Our range features exhibition casebacks, skeleton dials, and precision self-winding movements. Perfect for watch enthusiasts and collectors. Available in multiple case sizes (38mm–44mm) with leather and steel bracelet options. Order with cash on delivery, free shipping nationwide above Rs. 2,000.`,
+  Automatic: `Browse Automatic mechanical watches in Pakistan at the best prices. Automatic watches are powered by your wrist's natural motion — no battery needed. Our range features exhibition casebacks, skeleton dials, and precision self-winding movements. Perfect for watch enthusiasts and collectors. Available in multiple case sizes (38mm–44mm) with leather and steel bracelet options. Order with cash on delivery across Pakistan.`,
 
-  Sports: `Find durable Sports watches for men in Pakistan at StarkBuy. Built for active lifestyles, our Sports watch collection features water resistance up to 30–50m, shock-resistant cases, silicone and nylon straps, and luminous dials for low-light visibility. Ideal for outdoor activities, gym wear, or casual daily use. Shop Sports watches online with cash on delivery across Pakistan. Free shipping above Rs. 2,000.`,
+  Sports: `Find durable Sports watches for men in Pakistan at StarkBuy. Built for active lifestyles, our Sports watch collection features water resistance up to 30–50m, shock-resistant cases, silicone and nylon straps, and luminous dials for low-light visibility. Ideal for outdoor activities, gym wear, or casual daily use. Shop Sports watches online with cash on delivery across Pakistan.`,
 
-  Luxury: `Shop our premium Luxury watch collection in Pakistan. These elegant timepieces are crafted for those who appreciate refined craftsmanship — featuring sapphire crystal glass, genuine leather straps, precision Swiss-style movements, and polished stainless steel cases. Perfect for business, formal events, or as a meaningful gift. Cash on delivery available across Pakistan. Free delivery above Rs. 2,000.`,
+  Luxury: `Shop our premium Luxury watch collection in Pakistan. These elegant timepieces are crafted for those who appreciate refined craftsmanship — featuring sapphire crystal glass, genuine leather straps, precision Swiss-style movements, and polished stainless steel cases. Perfect for business, formal events, or as a meaningful gift. Cash on delivery available across Pakistan.`,
 
-  'A+ Replica': `StarkBuy offers a curated selection of high-quality A+ grade replica-style watches in Pakistan. Designed to replicate the look and feel of iconic international timepieces, these watches feature accurate movements, solid case construction, and premium finishing. Available with cash on delivery nationwide. Free shipping above Rs. 2,000.`,
+  'A+ Replica': `StarkBuy offers a curated selection of high-quality A+ grade replica-style watches in Pakistan. Designed to replicate the look and feel of iconic international timepieces, these watches feature accurate movements, solid case construction, and premium finishing. Available with cash on delivery nationwide.`,
 
-  Smart: `Explore Smart watches in Pakistan available at StarkBuy. Combining technology with style, our Smart watches offer health tracking, notification alerts, and app connectivity alongside classic watch aesthetics. Available in multiple color and strap options. Order online with cash on delivery across Pakistan and enjoy free delivery above Rs. 2,000.`,
+  Smart: `Explore Smart watches in Pakistan available at StarkBuy. Combining technology with style, our Smart watches offer health tracking, notification alerts, and app connectivity alongside classic watch aesthetics. Available in multiple color and strap options. Order online with cash on delivery across Pakistan.`,
 
-  Ladies: `Discover our Ladies watch collection in Pakistan — elegant, refined timepieces designed for women. From slim minimalist dials to jewel-embellished designs, our women's watches come in rose gold, silver, and two-tone finishes with leather and mesh bracelet straps. Perfect as a gift or personal treat. Cash on delivery available nationwide. Free shipping above Rs. 2,000.`,
+  Ladies: `Discover our Ladies watch collection in Pakistan — elegant, refined timepieces designed for women. From slim minimalist dials to jewel-embellished designs, our women's watches come in rose gold, silver, and two-tone finishes with leather and mesh bracelet straps. Perfect as a gift or personal treat. Cash on delivery available nationwide.`,
 
-  Couple: `Shop Couple watches in Pakistan at StarkBuy — matching his-and-hers timepiece sets perfect for weddings, anniversaries, and gifts. Our Couple watch sets feature coordinating designs in matching finishes with complementary case sizes for men and women. Available in Analog and Quartz styles. Order online with cash on delivery and free delivery above Rs. 2,000.`,
+  Couple: `Shop Couple watches in Pakistan at StarkBuy — matching his-and-hers timepiece sets perfect for weddings, anniversaries, and gifts. Our Couple watch sets feature coordinating designs in matching finishes with complementary case sizes for men and women. Available in Analog and Quartz styles. Order online with cash on delivery across Pakistan.`,
 
-  Sale: `Browse discounted watches on sale at StarkBuy Pakistan. Get the best deals on premium Analog, Chronograph, Sports, and Luxury watches at reduced prices. All sale watches come with the same 12-month warranty and 7-day return policy. Cash on delivery available nationwide. Free shipping above Rs. 2,000. Stock is limited — shop now before they sell out.`,
+  Sale: `Browse discounted watches on sale at StarkBuy Pakistan. Get the best deals on premium Analog, Chronograph, Sports, and Luxury watches at reduced prices. All sale watches come with the same 12-month warranty and 7-day return policy. Cash on delivery available nationwide. Stock is limited — shop now before they sell out.`,
 };
 
-function CategorySeoText({ category }: { category: string }) {
+function CategorySeoText({ category, freeShippingThreshold }: { category: string; freeShippingThreshold: number }) {
   const text = CATEGORY_SEO[category] || CATEGORY_SEO['All'];
   return (
     <div style={{ marginTop: '3rem', borderTop: 'var(--rule)', paddingTop: '2rem' }}>
@@ -295,7 +295,7 @@ function CategorySeoText({ category }: { category: string }) {
         About {category === 'All' ? 'Our Collection' : `${category} Watches`}
       </p>
       <p style={{ fontSize: '0.875rem', color: 'var(--luna-muted)', lineHeight: 1.8, maxWidth: 760 }}>
-        {text}
+        {text} Free delivery is available on orders above {BRAND.currencySymbol} {freeShippingThreshold.toLocaleString()}.
       </p>
     </div>
   );
