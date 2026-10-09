@@ -138,6 +138,7 @@ function HeroSlider() {
 
       {/* Arrows */}
       <button
+        className="hero-nav-button"
         onClick={prev}
         aria-label="Previous slide"
         style={{ position: 'absolute', left: '1.5rem', top: '50%', transform: 'translateY(-50%)', zIndex: 3, width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.88)', border: '1px solid rgba(255,255,255,0.25)', color: '#1A1A1A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }}
@@ -145,6 +146,7 @@ function HeroSlider() {
         <IconChevronLeft size={14} />
       </button>
       <button
+        className="hero-nav-button"
         onClick={next}
         aria-label="Next slide"
         style={{ position: 'absolute', right: '1.5rem', top: '50%', transform: 'translateY(-50%)', zIndex: 3, width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.88)', border: '1px solid rgba(255,255,255,0.25)', color: '#1A1A1A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }}
@@ -264,7 +266,7 @@ function FeaturedProducts() {
           Full collection <IconArrowRight size={14} />
         </Link>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '1rem' }}>
+      <div className="responsive-product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '1rem' }}>
         {featured.map(p => (
           <ProductCard key={p.id} product={p} />
         ))}
@@ -346,7 +348,7 @@ function NewArrivals() {
           All new <IconArrowRight size={14} />
         </Link>
       </div>
-      <div style={{
+      <div className="responsive-product-grid" style={{
         display: 'grid',
         gridTemplateColumns: newOnes.length < 4
           ? `repeat(${Math.min(newOnes.length, 4)}, minmax(0, 220px))`
@@ -468,7 +470,7 @@ function RecentlyViewed() {
           See all <IconArrowRight />
         </Link>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '1.25rem' }}>
+      <div className="responsive-product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '1.25rem' }}>
         {recent.slice(0, 4).map(p => <ProductCard key={p.id} product={p} />)}
       </div>
     </section>

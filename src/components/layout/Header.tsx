@@ -352,6 +352,9 @@ export function Header() {
           .desktop-icon { display: none !important; }
           .header-inner { grid-template-columns: auto 1fr !important; }
         }
+        @media (max-width: 380px) {
+          .header-inner { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+        }
         @keyframes dropdownIn {
           from { opacity: 0; transform: translateY(-6px); }
           to   { opacity: 1; transform: translateY(0); }

@@ -249,7 +249,7 @@ export default function Collections() {
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '1.25rem' }}>
+        <div className="responsive-product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '1.25rem' }}>
           {paginated.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
       )}

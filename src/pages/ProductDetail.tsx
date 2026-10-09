@@ -795,7 +795,7 @@ export default function ProductDetail() {
       {related.length > 0 && (
         <div style={{ marginTop: '5rem' }}>
           <h2 className="font-display" style={{ fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)', fontWeight: 600, letterSpacing: '-0.02em', marginBottom: '1.5rem' }}>You may also like</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '1.25rem' }}>
+          <div className="responsive-product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '1.25rem' }}>
             {related.map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>

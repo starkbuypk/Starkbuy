@@ -6,17 +6,52 @@ const siteUrl = (process.env.SITE_URL || 'https://www.starkbuypk.com').replace(/
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
-const staticRoutes = [
-  '/',
-  '/collections',
-  '/about',
-  '/blog',
-  '/support/contact-us',
-  '/support/exchange-policy',
-  '/support/size-guide',
-  '/support/payment-methods',
-  '/legal/privacy-policy',
-  '/legal/terms-of-service',
+const staticPages = [
+  {
+    route: '/collections',
+    title: 'Shop All Watches | StarkBuy Pakistan',
+    description: 'Browse premium watches for men and women in Pakistan with cash on delivery, nationwide shipping, warranty, and easy returns.',
+  },
+  {
+    route: '/about',
+    title: 'About StarkBuy | Premium Watches in Pakistan',
+    description: 'Learn about StarkBuy, a Pakistan-based watch store offering curated timepieces, cash on delivery, warranty, and nationwide support.',
+  },
+  {
+    route: '/blog',
+    title: 'Watch Guides & Style Journal | StarkBuy',
+    description: 'Read StarkBuy watch guides, care advice, buying tips, and style inspiration for watch enthusiasts across Pakistan.',
+  },
+  {
+    route: '/support/contact-us',
+    title: 'Contact StarkBuy | WhatsApp & Email Support',
+    description: 'Contact StarkBuy for product, delivery, sizing, exchange, or order support through WhatsApp and email.',
+  },
+  {
+    route: '/support/exchange-policy',
+    title: 'Exchange & Return Policy | StarkBuy Pakistan',
+    description: 'Read the StarkBuy exchange and return policy, including eligibility, timelines, item condition, and support instructions.',
+  },
+  {
+    route: '/support/size-guide',
+    title: 'Watch Size Guide | StarkBuy Pakistan',
+    description: 'Use the StarkBuy watch size guide to choose the right case diameter and fit for your wrist before placing an order.',
+  },
+  {
+    route: '/support/payment-methods',
+    title: 'Payment Methods | StarkBuy Pakistan',
+    description: 'Learn about cash on delivery and accepted payment methods for StarkBuy watch orders across Pakistan.',
+  },
+  {
+    route: '/legal/privacy-policy',
+    title: 'Privacy Policy | StarkBuy Pakistan',
+    description: 'Read how StarkBuy collects, uses, stores, and protects customer information when you browse or place an order.',
+  },
+  {
+    route: '/legal/terms-of-service',
+    title: 'Terms of Service | StarkBuy Pakistan',
+    description: 'Review the terms that apply when browsing StarkBuy or ordering watches for delivery across Pakistan.',
+  },
 ];
 
 function escapeHtml(value) {
@@ -89,7 +124,11 @@ function categoryEntries(products, configuredCategories) {
 function pageHtml(shell, title, description, canonicalUrl) {
   const escapedTitle = escapeHtml(title);
   const escapedDescription = escapeHtml(description);
-  return shell
+  const cleanedShell = shell
+    .replace(/<meta\s+name=["']description["'][^>]*>\s*/gi, '')
+    .replace(/<link\s+rel=["']canonical["'][^>]*>\s*/gi, '');
+
+  return cleanedShell
     .replace(/<title>.*?<\/title>/s, `<title>${escapedTitle}</title>`)
     .replace(
       /<\/head>/,
@@ -118,9 +157,15 @@ const dynamicRoutes = [
   ...categories.map(category => `/collections/${category.slug}`),
   ...products.map(product => `/product/${encodeURIComponent(product.slug)}`),
 ];
-const routes = [...new Set([...staticRoutes, ...dynamicRoutes])];
+const routes = [...new Set(['/', ...staticPages.map(page => page.route), ...dynamicRoutes])];
 
 await Promise.all([
+  ...staticPages.map(page => emitPage(
+    shell,
+    page.route,
+    page.title,
+    page.description,
+  )),
   ...categories.map(category => emitPage(
     shell,
     `/collections/${category.slug}`,

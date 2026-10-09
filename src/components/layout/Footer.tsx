@@ -156,7 +156,7 @@ export function Footer() {
             {joined ? (
               <p style={{ margin: 0, color: 'var(--luna-1)', fontSize: '0.9375rem' }}>✓ You're on the list. Watch for great drops!</p>
             ) : (
-              <form onSubmit={handleJoin} style={{ display: 'flex', gap: '0.625rem' }}>
+              <form className="newsletter-form" onSubmit={handleJoin} style={{ display: 'flex', gap: '0.625rem' }}>
                 <div style={{
                   flex: 1,
                   display: 'flex',
@@ -175,7 +175,7 @@ export function Footer() {
                     onChange={e => setEmail(e.target.value)}
                     placeholder="you@email.com"
                     required
-                    style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9375rem', padding: '0.8125rem 0' }}
+                    style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9375rem', padding: '0.8125rem 0' }}
                   />
                 </div>
                 <button
