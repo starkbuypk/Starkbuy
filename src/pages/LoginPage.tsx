@@ -19,6 +19,7 @@ function Input({
       <span style={{ position: 'absolute', left: '1rem', color: 'var(--luna-muted)', display: 'flex', pointerEvents: 'none' }}>{icon}</span>
       <input
         type={type}
+        aria-label={placeholder}
         placeholder={placeholder}
         value={value}
         onChange={e => onChange(e.target.value)}
@@ -38,7 +39,7 @@ function Input({
         onFocus={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(26,22,20,0.12)'; }}
       />
-      {right && <span style={{ position: 'absolute', right: '1rem', color: 'var(--luna-muted)', display: 'flex', cursor: 'pointer' }}>{right}</span>}
+      {right && <span style={{ position: 'absolute', right: '0.75rem', color: 'var(--luna-muted)', display: 'flex' }}>{right}</span>}
     </div>
   );
 }
@@ -244,7 +245,16 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={setPassword}
-                right={<span onClick={() => setShowPw(v => !v)}><IconEye off={showPw} /></span>}
+                right={(
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(v => !v)}
+                    aria-label={showPw ? 'Hide password' : 'Show password'}
+                    style={{ background: 'none', border: 'none', color: 'inherit', padding: '0.25rem', cursor: 'pointer', display: 'flex' }}
+                  >
+                    <IconEye off={showPw} />
+                  </button>
+                )}
               />
             </div>
 

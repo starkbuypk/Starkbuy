@@ -218,39 +218,6 @@ function UspStrip() {
   );
 }
 
-/* ── Prepaid Banner ───────────────────────────────────────────── */
-function PrepaidBanner() {
-  return (
-    <section style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 1.5rem 0' }}>
-      <div style={{
-        background: '#FFFFFF',
-        borderLeft: '3px solid var(--luna-1)',
-        borderTop: 'var(--rule)',
-        borderBottom: 'var(--rule)',
-        padding: '1.125rem 1.5rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '1rem',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span className="badge badge-accent" style={{ fontSize: '0.875rem', padding: '0.25rem 0.75rem' }}>
-            {BRAND.prepaidDiscount}% OFF
-          </span>
-          <div>
-            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.9375rem' }}>Pay now, save {BRAND.prepaidDiscount}% instantly</p>
-            <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--luna-muted)', marginTop: '0.125rem' }}>Prepaid via JazzCash, EasyPaisa, or bank transfer.</p>
-          </div>
-        </div>
-        <Link to="/collections" className="btn btn-outline" style={{ fontSize: '0.8125rem', padding: '0.5rem 1.25rem' }}>
-          Shop & Save
-        </Link>
-      </div>
-    </section>
-  );
-}
-
 /* ── Category Strip ───────────────────────────────────────────── */
 function CategoryStrip() {
   const cats = useCategories();
@@ -536,7 +503,7 @@ export default function Home() {
         email: 'starkbuypk@gmail.com',
         areaServed: { '@type': 'Country', name: 'Pakistan' },
         currenciesAccepted: 'PKR',
-        paymentAccepted: 'Cash on Delivery, JazzCash, EasyPaisa, Bank Transfer',
+        paymentAccepted: 'Cash on Delivery',
         priceRange: '₨₨',
       },
       {
@@ -553,7 +520,7 @@ export default function Home() {
           { '@type': 'Question', name: 'Do you deliver cash on delivery across Pakistan?', acceptedAnswer: { '@type': 'Answer', text: 'Yes, StarkBuy offers cash on delivery (COD) to all cities in Pakistan including Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Peshawar, Quetta, and more.' } },
           { '@type': 'Question', name: 'How long does delivery take?', acceptedAnswer: { '@type': 'Answer', text: `Standard delivery takes 1–3 working days. Orders above ${BRAND.currencySymbol} ${freeThreshold.toLocaleString()} get free shipping.` } },
           { '@type': 'Question', name: 'What is your return and exchange policy?', acceptedAnswer: { '@type': 'Answer', text: 'We accept exchanges within 7 days of delivery for unworn watches in original packaging. Contact us on WhatsApp with your order number.' } },
-          { '@type': 'Question', name: 'Can I pay online and get a discount?', acceptedAnswer: { '@type': 'Answer', text: 'Yes! Prepaid orders via JazzCash, EasyPaisa, or bank transfer get an instant 10% discount on your total.' } },
+          { '@type': 'Question', name: 'How can I pay for my order?', acceptedAnswer: { '@type': 'Answer', text: 'StarkBuy currently accepts cash on delivery. Pay the confirmed amount when your order arrives.' } },
           { '@type': 'Question', name: 'What types of watches do you sell?', acceptedAnswer: { '@type': 'Answer', text: 'StarkBuy sells Analog, Chronograph, Sports, Automatic, and Luxury watches. All watches come with a 12-month warranty.' } },
         ],
       },

@@ -14,8 +14,16 @@ create policy "public read site_config"
   on site_config for select
   using (true);
 
--- Allow anon writes (admin panel is password-protected at app level)
-create policy "anon write site_config"
+-- Only database-confirmed admins may change storefront configuration.
+drop policy if exists "anon write site_config" on site_config;
+drop policy if exists "admin manage site_config" on site_config;
+create policy "admin manage site_config"
   on site_config for all
-  using (true)
-  with check (true);
+  using (exists (
+    select 1 from public.user_roles
+    where user_id = auth.uid() and role = 'admin'
+  ))
+  with check (exists (
+    select 1 from public.user_roles
+    where user_id = auth.uid() and role = 'admin'
+  ));

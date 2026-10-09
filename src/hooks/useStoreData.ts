@@ -19,15 +19,16 @@ export const EV_CATEGORIES = 'sb-categories-updated';
 export function useAllProducts(): Product[] {
   const [products, setProducts] = useState<Product[]>([]);
 
-  async function refresh() {
-    const list = await dbGetProducts();
+  async function refresh(force = false) {
+    const list = await dbGetProducts(force);
     setProducts(list);
   }
 
   useEffect(() => {
     refresh();
-    window.addEventListener(EV_PRODUCTS, refresh);
-    return () => window.removeEventListener(EV_PRODUCTS, refresh);
+    const handleRefresh = () => refresh(true);
+    window.addEventListener(EV_PRODUCTS, handleRefresh);
+    return () => window.removeEventListener(EV_PRODUCTS, handleRefresh);
   }, []);
 
   return products;
@@ -36,16 +37,17 @@ export function useAllProducts(): Product[] {
 export function useSlides(): HeroSlide[] | null {
   const [slides, setSlides] = useState<HeroSlide[] | null>(null);
 
-  async function refresh() {
-    const fromDb = await dbGetConfig<HeroSlide[]>('slides');
+  async function refresh(force = false) {
+    const fromDb = await dbGetConfig<HeroSlide[]>('slides', force);
     const list = fromDb ?? DEFAULT_SLIDES;
     setSlides(list.filter(s => s.enabled));
   }
 
   useEffect(() => {
     refresh();
-    window.addEventListener(EV_SLIDES, refresh);
-    return () => window.removeEventListener(EV_SLIDES, refresh);
+    const handleRefresh = () => refresh(true);
+    window.addEventListener(EV_SLIDES, handleRefresh);
+    return () => window.removeEventListener(EV_SLIDES, handleRefresh);
   }, []);
 
   return slides;
@@ -54,16 +56,17 @@ export function useSlides(): HeroSlide[] | null {
 export function useCategories(): CategoryConfig[] | null {
   const [cats, setCats] = useState<CategoryConfig[] | null>(null);
 
-  async function refresh() {
-    const fromDb = await dbGetConfig<CategoryConfig[]>('categories');
+  async function refresh(force = false) {
+    const fromDb = await dbGetConfig<CategoryConfig[]>('categories', force);
     const list = fromDb ?? DEFAULT_CATEGORIES;
     setCats(list.filter(c => c.enabled));
   }
 
   useEffect(() => {
     refresh();
-    window.addEventListener(EV_CATEGORIES, refresh);
-    return () => window.removeEventListener(EV_CATEGORIES, refresh);
+    const handleRefresh = () => refresh(true);
+    window.addEventListener(EV_CATEGORIES, handleRefresh);
+    return () => window.removeEventListener(EV_CATEGORIES, handleRefresh);
   }, []);
 
   return cats;
@@ -79,16 +82,17 @@ export function useShippingConfig() {
   const [threshold, setThreshold] = useState<number | null>(null);
   const [cost, setCost] = useState<number | null>(null);
 
-  async function refresh() {
-    const data = await dbGetConfig<{ threshold: number; cost: number }>('shipping');
+  async function refresh(force = false) {
+    const data = await dbGetConfig<{ threshold: number; cost: number }>('shipping', force);
     setThreshold(data?.threshold ?? 5000);
     setCost(data?.cost ?? 200);
   }
 
   useEffect(() => {
     refresh();
-    window.addEventListener(EV_SHIPPING, refresh);
-    return () => window.removeEventListener(EV_SHIPPING, refresh);
+    const handleRefresh = () => refresh(true);
+    window.addEventListener(EV_SHIPPING, handleRefresh);
+    return () => window.removeEventListener(EV_SHIPPING, handleRefresh);
   }, []);
 
   return { threshold: threshold ?? 5000, cost: cost ?? 200, loaded: threshold !== null };
@@ -100,42 +104,45 @@ export const EV_REVIEWS = 'sb-reviews-updated';
 
 export function useReviewStats(): Record<string, { count: number; avg: number }> {
   const [stats, setStats] = useState<Record<string, { count: number; avg: number }>>({});
-  async function refresh() {
-    const data = await dbGetReviewStats();
+  async function refresh(force = false) {
+    const data = await dbGetReviewStats(force);
     setStats(data);
   }
   useEffect(() => {
     refresh();
-    window.addEventListener(EV_REVIEWS, refresh);
-    return () => window.removeEventListener(EV_REVIEWS, refresh);
+    const handleRefresh = () => refresh(true);
+    window.addEventListener(EV_REVIEWS, handleRefresh);
+    return () => window.removeEventListener(EV_REVIEWS, handleRefresh);
   }, []);
   return stats;
 }
 
 export function useTestimonials(): Testimonial[] | null {
   const [items, setItems] = useState<Testimonial[] | null>(null);
-  async function refresh() {
-    const data = await dbGetConfig<Testimonial[]>('testimonials');
+  async function refresh(force = false) {
+    const data = await dbGetConfig<Testimonial[]>('testimonials', force);
     setItems(data ?? DEFAULT_TESTIMONIALS);
   }
   useEffect(() => {
     refresh();
-    window.addEventListener(EV_TESTIMONIALS, refresh);
-    return () => window.removeEventListener(EV_TESTIMONIALS, refresh);
+    const handleRefresh = () => refresh(true);
+    window.addEventListener(EV_TESTIMONIALS, handleRefresh);
+    return () => window.removeEventListener(EV_TESTIMONIALS, handleRefresh);
   }, []);
   return items;
 }
 
 export function useBusinessHours(): BusinessHours[] | null {
   const [items, setItems] = useState<BusinessHours[] | null>(null);
-  async function refresh() {
-    const data = await dbGetConfig<BusinessHours[]>('business_hours');
+  async function refresh(force = false) {
+    const data = await dbGetConfig<BusinessHours[]>('business_hours', force);
     setItems(data ?? DEFAULT_BUSINESS_HOURS);
   }
   useEffect(() => {
     refresh();
-    window.addEventListener(EV_HOURS, refresh);
-    return () => window.removeEventListener(EV_HOURS, refresh);
+    const handleRefresh = () => refresh(true);
+    window.addEventListener(EV_HOURS, handleRefresh);
+    return () => window.removeEventListener(EV_HOURS, handleRefresh);
   }, []);
   return items;
 }

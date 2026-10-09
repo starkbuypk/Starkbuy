@@ -1,28 +1,17 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../data/products';
 import { BRAND } from '../config';
+import { calculateCheckoutTotals, getProductPrice } from '../utils/pricing';
 import { IconChevronRight, IconShield, IconTruck } from '../components/icons/Icons';
 import { toast } from '../utils/toast';
 import { useShippingConfig } from '../hooks/useStoreData';
-import { dbPlaceOrder, dbSaveOrder, dbValidateCoupon, type StoredCoupon, type PlaceOrderResult } from '../utils/supabaseStore';
+import { dbPlaceOrder, dbValidateCoupon, type StoredCoupon } from '../utils/supabaseStore';
 import { supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 
-const OWNER_EMAIL = 'starkbuypk@gmail.com';
-
-/* ── HTML escaping — prevents injection into email body (H2 fix) ── */
-function esc(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-/* ── Send email via Supabase Edge Function (Hostinger SMTP) ── */
-async function sendOrderEmail(to: { email: string; name: string }, subject: string, html: string) {
+/* Recipient selection and HTML rendering happen in the secured Edge Function. */
+async function sendOrderConfirmation(orderId: string) {
   try {
     const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
       method: 'POST',
@@ -30,169 +19,23 @@ async function sendOrderEmail(to: { email: string; name: string }, subject: stri
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
-      body: JSON.stringify({ to, subject, html }),
+      body: JSON.stringify({ type: 'order_confirmation', orderId }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch {
-    // best-effort; order already saved to Supabase
+    // Best effort: the validated order is already saved in Supabase.
   }
 }
 
-function ownerEmailHtml(params: {
-  order_id: string; customer_name: string; customer_phone: string; customer_email: string;
-  shipping_address: string; coupon: string; items: { name: string; qty: number; price: string }[];
-  shipping: string; total: string;
-}) {
-  const rows = params.items.map(i => `
-    <tr>
-      <td style="padding:12px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;color:#1a1614">${esc(i.name)}</td>
-      <td style="padding:12px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;text-align:center;color:#555">${i.qty}</td>
-      <td style="padding:12px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;text-align:right;color:#1a1614;font-weight:600">${esc(i.price)}</td>
-    </tr>`).join('');
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f5f0eb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:32px 16px">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08)">
-        <!-- Header -->
-        <tr><td style="background:#1a1614;padding:24px 32px;text-align:center">
-          <p style="margin:0;font-size:22px;font-weight:700;letter-spacing:2px;color:#C9A84C">STARKBUY</p>
-          <p style="margin:6px 0 0;font-size:12px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase">Pakistan</p>
-        </td></tr>
-        <!-- Alert banner -->
-        <tr><td style="background:#C9A84C;padding:12px 32px;text-align:center">
-          <p style="margin:0;font-size:13px;font-weight:600;color:#1a1614;letter-spacing:0.5px">&#x1F6D2; NEW ORDER RECEIVED &mdash; ${esc(params.order_id)}</p>
-        </td></tr>
-        <!-- Customer info -->
-        <tr><td style="padding:28px 32px 0">
-          <p style="margin:0 0 16px;font-size:16px;font-weight:700;color:#1a1614;border-bottom:2px solid #f0ebe6;padding-bottom:10px">Customer Details</p>
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr><td style="padding:5px 0;font-size:13px;color:#888;width:100px">Name</td><td style="padding:5px 0;font-size:13px;color:#1a1614;font-weight:600">${esc(params.customer_name)}</td></tr>
-            <tr><td style="padding:5px 0;font-size:13px;color:#888">Phone</td><td style="padding:5px 0;font-size:13px;color:#1a1614">${esc(params.customer_phone)}</td></tr>
-            <tr><td style="padding:5px 0;font-size:13px;color:#888">Email</td><td style="padding:5px 0;font-size:13px;color:#1a1614">${esc(params.customer_email)}</td></tr>
-            <tr><td style="padding:5px 0;font-size:13px;color:#888">Address</td><td style="padding:5px 0;font-size:13px;color:#1a1614">${esc(params.shipping_address)}</td></tr>
-            ${params.coupon !== 'None' ? `<tr><td style="padding:5px 0;font-size:13px;color:#888">Coupon</td><td style="padding:5px 0;font-size:13px;color:#C9A84C;font-weight:600">${esc(params.coupon)}</td></tr>` : ''}
-          </table>
-        </td></tr>
-        <!-- Items -->
-        <tr><td style="padding:24px 32px 0">
-          <p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#1a1614;border-bottom:2px solid #f0ebe6;padding-bottom:10px">Order Items</p>
-          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #f0ebe6;border-radius:8px;overflow:hidden">
-            <thead><tr style="background:#faf7f4">
-              <th style="padding:10px 16px;font-size:12px;text-align:left;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Product</th>
-              <th style="padding:10px 16px;font-size:12px;text-align:center;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Qty</th>
-              <th style="padding:10px 16px;font-size:12px;text-align:right;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Price</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </td></tr>
-        <!-- Totals -->
-        <tr><td style="padding:20px 32px 28px">
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr><td style="padding:4px 0;font-size:13px;color:#888">Shipping</td><td style="padding:4px 0;font-size:13px;text-align:right;color:#1a1614">${esc(params.shipping)}</td></tr>
-            <tr><td style="padding:4px 0;font-size:13px;color:#888">Payment</td><td style="padding:4px 0;font-size:13px;text-align:right;color:#1a1614">Cash on Delivery</td></tr>
-            <tr><td colspan="2" style="padding:8px 0 0"><div style="border-top:2px solid #1a1614;margin:4px 0"></div></td></tr>
-            <tr><td style="padding:8px 0;font-size:16px;font-weight:700;color:#1a1614">Total</td><td style="padding:8px 0;font-size:18px;font-weight:700;text-align:right;color:#C9A84C">${esc(params.total)}</td></tr>
-          </table>
-        </td></tr>
-        <!-- Footer -->
-        <tr><td style="background:#f5f0eb;padding:16px 32px;text-align:center;border-top:1px solid #ece7e2">
-          <p style="margin:0;font-size:12px;color:#999">StarkBuy Pakistan &bull; orders@starkbuypk.com</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
-}
-
-function customerEmailHtml(params: {
-  order_id: string; first_name: string; items: { name: string; qty: number; price: string }[];
-  shipping: string; total: string;
-}) {
-  const rows = params.items.map(i => `
-    <tr>
-      <td style="padding:14px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;color:#1a1614">${esc(i.name)}</td>
-      <td style="padding:14px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;text-align:center;color:#666">${i.qty}</td>
-      <td style="padding:14px 16px;border-bottom:1px solid #f0ebe6;font-size:14px;text-align:right;font-weight:700;color:#1a1614">${esc(i.price)}</td>
-    </tr>`).join('');
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f5f0eb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:32px 16px">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08)">
-        <!-- Header -->
-        <tr><td style="background:#1a1614;padding:32px;text-align:center">
-          <p style="margin:0;font-size:26px;font-weight:700;letter-spacing:3px;color:#C9A84C">STARKBUY</p>
-          <p style="margin:6px 0 0;font-size:11px;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase">Pakistan</p>
-        </td></tr>
-        <!-- Hero message -->
-        <tr><td style="padding:36px 32px 24px;text-align:center">
-          <div style="width:64px;height:64px;background:#f5f0eb;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:28px;line-height:64px">&#x2705;</div>
-          <p style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1a1614">Order Confirmed!</p>
-          <p style="margin:0;font-size:15px;color:#666">Thank you, <b style="color:#1a1614">${esc(params.first_name)}</b>. Your order has been placed successfully.</p>
-        </td></tr>
-        <!-- Order ID badge -->
-        <tr><td style="padding:0 32px 28px;text-align:center">
-          <div style="display:inline-block;background:#faf7f4;border:1px solid #e8e1d9;border-radius:8px;padding:12px 24px">
-            <p style="margin:0;font-size:11px;color:#999;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Order Number</p>
-            <p style="margin:0;font-size:20px;font-weight:700;color:#C9A84C;letter-spacing:1px">${esc(params.order_id)}</p>
-          </div>
-        </td></tr>
-        <!-- Items table -->
-        <tr><td style="padding:0 32px">
-          <p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#1a1614;border-bottom:2px solid #f0ebe6;padding-bottom:10px">Your Items</p>
-          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #f0ebe6;border-radius:8px;overflow:hidden">
-            <thead><tr style="background:#faf7f4">
-              <th style="padding:10px 16px;font-size:12px;text-align:left;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Product</th>
-              <th style="padding:10px 16px;font-size:12px;text-align:center;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Qty</th>
-              <th style="padding:10px 16px;font-size:12px;text-align:right;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Price</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </td></tr>
-        <!-- Totals -->
-        <tr><td style="padding:20px 32px 0">
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr><td style="padding:4px 0;font-size:13px;color:#888">Shipping</td><td style="padding:4px 0;font-size:13px;text-align:right;color:#1a1614">${esc(params.shipping)}</td></tr>
-            <tr><td style="padding:4px 0;font-size:13px;color:#888">Payment Method</td><td style="padding:4px 0;font-size:13px;text-align:right;color:#1a1614">Cash on Delivery</td></tr>
-            <tr><td colspan="2" style="padding:8px 0 0"><div style="border-top:2px solid #1a1614;margin:4px 0"></div></td></tr>
-            <tr><td style="padding:8px 0;font-size:16px;font-weight:700;color:#1a1614">Total Amount</td><td style="padding:8px 0;font-size:20px;font-weight:700;text-align:right;color:#C9A84C">${esc(params.total)}</td></tr>
-          </table>
-        </td></tr>
-        <!-- COD info box -->
-        <tr><td style="padding:24px 32px">
-          <div style="background:#faf7f4;border-left:4px solid #C9A84C;border-radius:0 8px 8px 0;padding:16px 20px">
-            <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#1a1614">&#x1F4B5; Cash on Delivery</p>
-            <p style="margin:0;font-size:13px;color:#666;line-height:1.6">Please keep the exact amount ready at the time of delivery. Our team will contact you to confirm your delivery time.</p>
-          </div>
-        </td></tr>
-        <!-- Track order -->
-        <tr><td style="padding:0 32px 28px;text-align:center">
-          <p style="margin:0 0 4px;font-size:13px;color:#888">Track your order anytime at</p>
-          <p style="margin:0;font-size:13px;font-weight:600;color:#C9A84C">starkbuypk.com &rarr; Track Order</p>
-          <p style="margin:6px 0 0;font-size:12px;color:#aaa">Use your order number and phone/email to track</p>
-        </td></tr>
-        <!-- Footer -->
-        <tr><td style="background:#1a1614;padding:20px 32px;text-align:center">
-          <p style="margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:1px;color:#C9A84C">STARKBUY PAKISTAN</p>
-          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4)">orders@starkbuypk.com &bull; WhatsApp available</p>
-          <p style="margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.25)">You received this email because you placed an order on StarkBuy.</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
-}
-
-/* ── Crypto-secure order ID ──────────────────────────────────────── */
 function generateOrderId(): string {
-  const arr = new Uint32Array(2);
-  crypto.getRandomValues(arr);
-  const hex = arr[0].toString(16).padStart(8, '0') + arr[1].toString(16).slice(0, 4);
-  return `SB-${hex.toUpperCase()}`;
+  const random = new Uint32Array(2);
+  crypto.getRandomValues(random);
+  const value = random[0].toString(16).padStart(8, '0') + random[1].toString(16).slice(0, 4);
+  return `SB-${value.toUpperCase()}`;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-/* ── Types ───────────────────────────────────────────────────── */
 type Step = 'contact' | 'shipping' | 'confirmation';
 
 interface ContactForm { name: string; phone: string; email: string; }
@@ -248,11 +91,14 @@ function StepBar({ current }: { current: Step }) {
 
 /* ── Input ────────────────────────────────────────────────────── */
 function Field({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const generatedId = useId();
+  const id = props.id ?? generatedId;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-      <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--luna-muted)' }}>{label}</label>
+      <label htmlFor={id} style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--luna-muted)' }}>{label}</label>
       <input
         {...props}
+        id={id}
         style={{
           background: 'rgba(0,0,0,0.04)',
           border: '1px solid rgba(26,22,20,0.12)',
@@ -272,13 +118,6 @@ function Field({ label, ...props }: { label: string } & React.InputHTMLAttribute
   );
 }
 
-/* ── Coupon discount calculator ──────────────────────────────── */
-function calcDiscount(coupon: StoredCoupon | null, subtotal: number): number {
-  if (!coupon) return 0;
-  if (coupon.type === 'Percentage') return Math.round(subtotal * coupon.value / 100);
-  return Math.min(coupon.value, subtotal);
-}
-
 /* ── Order Summary sidebar ────────────────────────────────────── */
 function OrderSummary({
   couponCode,
@@ -293,9 +132,12 @@ function OrderSummary({
 }) {
   const { items, subtotal } = useCart();
   const { threshold: freeThreshold, cost: shipCost } = useShippingConfig();
-  const couponDiscount = calcDiscount(appliedCoupon, subtotal);
-  const shipping = subtotal >= freeThreshold ? 0 : shipCost;
-  const total = subtotal - couponDiscount + shipping;
+  const { discount: couponDiscount, shipping, total } = calculateCheckoutTotals({
+    subtotal,
+    freeShippingThreshold: freeThreshold,
+    shippingCost: shipCost,
+    coupon: appliedCoupon,
+  });
 
   async function applyCoupon() {
     const code = couponCode.toUpperCase().trim();
@@ -314,7 +156,7 @@ function OrderSummary({
         </div>
         <div style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
           {items.map(item => (
-            <div key={`${item.product.id}-${item.caseSize}-${item.strap}`} style={{ display: 'flex', gap: '0.875rem', alignItems: 'center' }}>
+            <div key={`${item.product.id}-${item.caseSize}-${item.strap}-${item.color ?? ''}`} style={{ display: 'flex', gap: '0.875rem', alignItems: 'center' }}>
               <div style={{ position: 'relative', flexShrink: 0 }}>
                 <img src={item.product.image + (item.product.image.includes('?') ? '&w=80' : '?w=80')} alt={item.product.name} style={{ width: 52, height: 64, objectFit: 'cover', borderRadius: '0.5rem' }} loading="lazy" />
                 <span style={{ position: 'absolute', top: -6, right: -6, width: 18, height: 18, background: 'var(--luna-4)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '50%', fontSize: '0.625rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'var(--luna-fg)', fontVariantNumeric: 'tabular-nums' }}>
@@ -323,10 +165,12 @@ function OrderSummary({
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ margin: 0, fontWeight: 500, fontSize: '0.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.product.name}</p>
-                <p style={{ margin: '0.125rem 0 0', fontSize: '0.75rem', color: 'var(--luna-muted)' }}>{item.strap}</p>
+                <p style={{ margin: '0.125rem 0 0', fontSize: '0.75rem', color: 'var(--luna-muted)' }}>
+                  {[item.color, item.caseSize, item.strap].filter(Boolean).join(' · ')}
+                </p>
               </div>
               <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: '0.875rem', fontWeight: 500, flexShrink: 0 }}>
-                {formatPrice((item.product.discountPercent > 0 ? Math.round(item.product.codPrice * (1 - item.product.discountPercent / 100)) : item.product.codPrice) * item.quantity)}
+                {formatPrice(getProductPrice(item.product) * item.quantity)}
               </span>
             </div>
           ))}
@@ -338,6 +182,7 @@ function OrderSummary({
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <input
                 value={couponCode}
+                aria-label="Coupon code"
                 onChange={e => setCouponCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
                 placeholder="Coupon code"
                 maxLength={20}
@@ -499,8 +344,7 @@ function Confirmation({ contact, orderNumber }: { contact: ContactForm; orderNum
 
 /* ── Main Checkout page ───────────────────────────────────────── */
 export default function CheckoutPage() {
-  const { items, subtotal, clearCart } = useCart();
-  const { threshold: freeThresholdMain, cost: shipCostMain } = useShippingConfig();
+  const { items, clearCart } = useCart();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('contact');
   const [contact, setContact] = useState<ContactForm>({ name: '', phone: '', email: '' });
@@ -526,18 +370,8 @@ export default function CheckoutPage() {
     const fullAddress = [shipping.street, shipping.area, shipping.city, shipping.postcode].filter(Boolean).join(', ');
 
     const orderDate = new Date().toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' });
-    const shippingCost = subtotal >= freeThresholdMain ? 0 : shipCostMain;
-    const discount = appliedCoupon
-      ? appliedCoupon.type === 'Percentage'
-        ? Math.round(subtotal * appliedCoupon.value / 100)
-        : appliedCoupon.value
-      : 0;
-    const totalAmt = subtotal - discount + shippingCost;
-
-    let result: PlaceOrderResult;
     try {
-      // Try server-side RPC first (validates totals, atomically consumes coupon)
-      result = await dbPlaceOrder({
+      await dbPlaceOrder({
         id:          orderNumber,
         name:        contact.name,
         phone:       contact.phone,
@@ -545,83 +379,24 @@ export default function CheckoutPage() {
         address:     fullAddress,
         city:        shipping.city,
         date:        orderDate,
-        item_refs:   items.map(item => ({ id: item.product.id, qty: item.quantity })),
+        item_refs:   items.map(item => ({
+          id: item.product.id,
+          qty: item.quantity,
+          color: item.color,
+          caseSize: item.caseSize,
+          strap: item.strap,
+        })),
         coupon_code: appliedCoupon?.code ?? null,
       });
     } catch (rpcErr) {
-      // RPC not set up yet — fall back to direct order insert with client-computed totals
-      if (import.meta.env.DEV) console.warn('place_order RPC failed, using fallback:', rpcErr);
-      try {
-        await dbSaveOrder({
-          id:       orderNumber,
-          name:     contact.name,
-          phone:    contact.phone,
-          email:    contact.email,
-          address:  fullAddress,
-          city:     shipping.city,
-          date:     orderDate,
-          items:    items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.discountPercent > 0 ? Math.round(i.product.codPrice * (1 - i.product.discountPercent / 100)) : i.product.codPrice })),
-          subtotal,
-          shipping: shippingCost,
-          codFee:   0,
-          total:    totalAmt,
-          status:   'Processing',
-        });
-        result = {
-          subtotal,
-          shipping: shippingCost,
-          cod_fee:  0,
-          discount,
-          total:    totalAmt,
-          items:    items.map(i => ({ name: i.product.name, qty: i.quantity, price: i.product.discountPercent > 0 ? Math.round(i.product.codPrice * (1 - i.product.discountPercent / 100)) : i.product.codPrice })),
-        };
-      } catch (fallbackErr) {
-        setIsPlacing(false);
-        toast('Could not place your order. Please try again.', { type: 'error' });
-        if (import.meta.env.DEV) console.error('Order fallback also failed:', fallbackErr);
-        return;
-      }
+      setIsPlacing(false);
+      toast('Could not place your order. Please try again.', { type: 'error' });
+      if (import.meta.env.DEV) console.error('Secure order placement failed:', rpcErr);
+      return;
     }
 
-    // Build email content from server-validated totals
-    const emailItems   = result.items.map(i => ({ name: i.name, qty: i.qty, price: `Rs. ${i.price.toLocaleString()}` }));
-    const shippingLabel = result.shipping === 0 ? 'Free' : `Rs. ${result.shipping.toLocaleString()}`;
-    const totalLabel    = `Rs. ${result.total.toLocaleString()}`;
-    const couponDisplay = appliedCoupon
-      ? `${appliedCoupon.code} −Rs. ${result.discount.toLocaleString()}`
-      : 'None';
-
-    // C2: emails sent via Edge Function (Brevo key never leaves the server)
-    // Non-blocking — order is already saved; email failure must not break UX
-    sendOrderEmail(
-      { email: OWNER_EMAIL, name: 'Starkbuy Pakistan' },
-      `New Order ${orderNumber} — ${contact.name}`,
-      ownerEmailHtml({
-        order_id: orderNumber,
-        customer_name: contact.name,
-        customer_phone: contact.phone,
-        customer_email: contact.email || '—',
-        shipping_address: fullAddress,
-        coupon: couponDisplay,
-        items: emailItems,
-        shipping: shippingLabel,
-        total: totalLabel,
-      }),
-    );
-
-    if (contact.email) {
-      sendOrderEmail(
-        { email: contact.email, name: contact.name },
-        `Your Starkbuy Order ${orderNumber} is Confirmed!`,
-        customerEmailHtml({
-          order_id: orderNumber,
-          first_name: contact.name.split(' ')[0],
-          items: emailItems,
-          shipping: shippingLabel,
-          total: totalLabel,
-        }),
-      );
-    }
+    // Non-blocking: recipient selection and HTML rendering happen in the secured Edge Function.
+    sendOrderConfirmation(orderNumber);
 
     clearCart();
     setIsPlacing(false);

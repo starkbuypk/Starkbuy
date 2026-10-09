@@ -4,6 +4,7 @@ import { formatPrice } from '../../data/products';
 import type { Product } from '../../data/products';
 import { dbGetProducts } from '../../utils/supabaseStore';
 import { IconSearch, IconX } from '../icons/Icons';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 
 interface Props {
   open: boolean;
@@ -14,6 +15,7 @@ export function SearchOverlay({ open, onClose }: Props) {
   const [query, setQuery] = useState('');
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useDialogA11y<HTMLDivElement>(open, onClose);
 
   useEffect(() => {
     dbGetProducts().then(setAllProducts);
@@ -30,12 +32,6 @@ export function SearchOverlay({ open, onClose }: Props) {
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
   if (!open) return null;
 
   const results = query.trim()
@@ -47,6 +43,11 @@ export function SearchOverlay({ open, onClose }: Props) {
 
   return (
     <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Search watches"
+      tabIndex={-1}
       style={{
         position: 'fixed',
         inset: 0,
@@ -95,6 +96,7 @@ export function SearchOverlay({ open, onClose }: Props) {
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
+            aria-label="Search watches"
             placeholder="Search watches — brand, category, name..."
             style={{
               flex: 1,
@@ -107,7 +109,7 @@ export function SearchOverlay({ open, onClose }: Props) {
             }}
           />
           {query && (
-            <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', color: 'var(--luna-muted)', cursor: 'pointer', padding: 0 }}>
+            <button aria-label="Clear search" onClick={() => setQuery('')} style={{ background: 'none', border: 'none', color: 'var(--luna-muted)', cursor: 'pointer', padding: 0 }}>
               <IconX size={16} />
             </button>
           )}

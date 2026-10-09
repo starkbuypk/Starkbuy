@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 import { recordView } from '../utils/recentlyViewed';
 import { formatPrice } from '../data/products';
-import type { Strap } from '../data/products';
+import type { CaseSize, Strap } from '../data/products';
 import { useAllProducts } from '../hooks/useStoreData';
 import { ProductCard } from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
@@ -16,6 +16,7 @@ import { invalidateReviewStatsCache } from '../utils/supabaseStore';
 import { EV_REVIEWS } from '../hooks/useStoreData';
 import { useShippingConfig } from '../hooks/useStoreData';
 import { BRAND } from '../config';
+import { useDialogA11y } from '../hooks/useDialogA11y';
 
 /* ── Star picker ──────────────────────────────────────────────── */
 /* ── Lightbox ─────────────────────────────────────────────────── */
@@ -27,13 +28,13 @@ function Lightbox({ items, startIndex, onClose }: {
   const [idx, setIdx] = useState(startIndex);
   const touchStartX = useRef(0);
   const imageItems = items.filter(i => i.type === 'image');
+  const dialogRef = useDialogA11y<HTMLDivElement>(true, onClose);
 
   const prev = useCallback(() => setIdx(i => Math.max(0, i - 1)), []);
   const next = useCallback(() => setIdx(i => Math.min(imageItems.length - 1, i + 1)), [imageItems.length]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowLeft') prev();
       if (e.key === 'ArrowRight') next();
     }
@@ -50,6 +51,11 @@ function Lightbox({ items, startIndex, onClose }: {
 
   return (
     <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Product image gallery"
+      tabIndex={-1}
       onClick={onClose}
       style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)' }}
       onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
@@ -60,7 +66,7 @@ function Lightbox({ items, startIndex, onClose }: {
       }}
     >
       {/* Close */}
-      <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', fontSize: '1.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>✕</button>
+      <button aria-label="Close image gallery" onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', fontSize: '1.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>✕</button>
 
       {/* Counter */}
       <div style={{ position: 'absolute', top: '1rem', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.6)', fontSize: '0.8125rem', fontFamily: 'DM Sans, sans-serif' }}>
@@ -77,14 +83,14 @@ function Lightbox({ items, startIndex, onClose }: {
 
       {/* Prev arrow */}
       {idx > 0 && (
-        <button onClick={e => { e.stopPropagation(); prev(); }} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+        <button aria-label="Previous image" onClick={e => { e.stopPropagation(); prev(); }} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
       )}
 
       {/* Next arrow */}
       {idx < imageItems.length - 1 && (
-        <button onClick={e => { e.stopPropagation(); next(); }} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+        <button aria-label="Next image" onClick={e => { e.stopPropagation(); next(); }} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       )}
@@ -93,7 +99,7 @@ function Lightbox({ items, startIndex, onClose }: {
       {imageItems.length > 1 && (
         <div style={{ position: 'absolute', bottom: '1.25rem', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '0.375rem' }}>
           {imageItems.map((_, i) => (
-            <button key={i} onClick={e => { e.stopPropagation(); setIdx(i); }} style={{ width: i === idx ? 20 : 6, height: 6, borderRadius: 3, border: 'none', background: i === idx ? '#fff' : 'rgba(255,255,255,0.35)', padding: 0, cursor: 'pointer', transition: 'width 200ms' }} />
+            <button key={i} aria-label={`View image ${i + 1}`} aria-current={i === idx ? 'true' : undefined} onClick={e => { e.stopPropagation(); setIdx(i); }} style={{ width: i === idx ? 20 : 6, height: 6, borderRadius: 3, border: 'none', background: i === idx ? '#fff' : 'rgba(255,255,255,0.35)', padding: 0, cursor: 'pointer', transition: 'width 200ms' }} />
           ))}
         </div>
       )}
@@ -114,15 +120,36 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
   );
 }
 
+function ReviewImageDialog({ src, onClose }: { src: string; onClose: () => void }) {
+  const dialogRef = useDialogA11y<HTMLDivElement>(true, onClose);
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, []);
+  return (
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Customer review image"
+      tabIndex={-1}
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}
+    >
+      <button aria-label="Close review image" onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', cursor: 'pointer' }}>✕</button>
+      <img onClick={event => event.stopPropagation()} src={src} alt="Customer review" style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: '0.5rem', objectFit: 'contain' }} />
+    </div>
+  );
+}
+
 /* ── Review card ──────────────────────────────────────────────── */
 function ReviewCard({ review }: { review: Review }) {
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   return (
     <div style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.18)', borderRadius: '0.625rem', padding: '0.875rem 1rem' }}>
       {lightboxSrc && (
-        <div onClick={() => setLightboxSrc(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}>
-          <img src={lightboxSrc} alt="" style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: '0.5rem', objectFit: 'contain' }} />
-        </div>
+        <ReviewImageDialog src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
       )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -141,8 +168,11 @@ function ReviewCard({ review }: { review: Review }) {
       {review.images && review.images.length > 0 && (
         <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginTop: '0.5rem', marginBottom: '0.375rem' }}>
           {review.images.map((src, i) => (
-            <img key={i} src={src} alt={`Review photo ${i + 1}`} onClick={() => setLightboxSrc(src)}
-              style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: '0.375rem', border: '1px solid rgba(26,22,20,0.12)', cursor: 'zoom-in' }} />
+            <button key={i} type="button" aria-label={`Open review photo ${i + 1}`} onClick={() => setLightboxSrc(src)}
+              style={{ padding: 0, border: 'none', background: 'none', cursor: 'zoom-in' }}>
+              <img src={src} alt={`Review photo ${i + 1}`}
+                style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: '0.375rem', border: '1px solid rgba(26,22,20,0.12)', display: 'block' }} />
+            </button>
           ))}
         </div>
       )}
@@ -174,21 +204,24 @@ function ReviewsSection({ productId, staticRating, staticCount, user, externalRe
   }, [productId, user]);
 
   async function handleImageUpload(file: File) {
+    if (!user) return;
     if (reviewImages.length >= 3) return;
+    if (!file.type.startsWith('image/')) { toast('Only image files are allowed.', { type: 'error' }); return; }
     if (file.size > 8 * 1024 * 1024) { alert('Image must be under 8MB'); return; }
     setUploadingImg(true);
     try {
       const ext = file.name.split('.').pop() ?? 'jpg';
-      const path = `reviews/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const path = `reviews/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error } = await import('../lib/supabase').then(m =>
-        m.supabase.storage.from('product-images').upload(path, file, { upsert: true })
+        m.supabase.storage.from('product-images').upload(path, file, { contentType: file.type, upsert: false })
       );
-      if (!error) {
-        const { data } = await import('../lib/supabase').then(m =>
-          m.supabase.storage.from('product-images').getPublicUrl(path)
-        );
-        setReviewImages(prev => [...prev, data.publicUrl]);
-      }
+      if (error) throw error;
+      const { data } = await import('../lib/supabase').then(m =>
+        m.supabase.storage.from('product-images').getPublicUrl(path)
+      );
+      setReviewImages(prev => [...prev, data.publicUrl]);
+    } catch {
+      toast('Review image upload failed. Please try again.', { type: 'error' });
     } finally {
       setUploadingImg(false);
     }
@@ -215,7 +248,7 @@ function ReviewsSection({ productId, staticRating, staticCount, user, externalRe
       setText('');
       setReviewImages([]);
     } catch {
-      // silently fail — user sees form still
+      toast('Could not submit your review. Please try again.', { type: 'error' });
     } finally {
       setPosting(false);
     }
@@ -339,6 +372,7 @@ export default function ProductDetail() {
   const [activeImg, setActiveImg] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [selectedCaseSize, setSelectedCaseSize] = useState<CaseSize>(() => product?.caseSizeOptions[0] ?? '40mm');
   const [selectedStrap, setSelectedStrap] = useState<Strap>(() => product?.strapOptions[0] ?? 'Leather');
   const [selectedColor, setSelectedColor] = useState<string | null>(() => product?.colorVariants?.[0]?.color ?? null);
   // Live reviews — loaded at page level so rating header also updates
@@ -348,6 +382,7 @@ export default function ProductDetail() {
   // Reset when product changes
   useEffect(() => {
     if (product) {
+      setSelectedCaseSize(product.caseSizeOptions[0] ?? '40mm');
       setSelectedStrap(product.strapOptions[0] ?? 'Leather');
       setSelectedColor(product.colorVariants?.[0]?.color ?? null);
       setActiveImg(0);
@@ -455,13 +490,21 @@ export default function ProductDetail() {
   const related = allProducts.filter(p => p.id !== product.id && (p.category === product.category || p.gender === product.gender)).slice(0, 4);
 
   function handleAddToCart() {
-    addToCart({ product: product!, caseSize: (product!.caseSizeOptions[0] ?? '40mm'), strap: selectedStrap || product!.strapOptions[0], quantity: qty });
+    if (!product!.inStock) {
+      toast('This watch is currently out of stock.', { type: 'error' });
+      return;
+    }
+    addToCart({ product: product!, caseSize: selectedCaseSize, strap: selectedStrap || product!.strapOptions[0], color: selectedColor ?? undefined, quantity: qty });
     toast(`${product!.name} added to bag`);
     openCart();
   }
 
   function handleBuyNow() {
-    addToCart({ product: product!, caseSize: (product!.caseSizeOptions[0] ?? '40mm'), strap: selectedStrap || product!.strapOptions[0], quantity: qty });
+    if (!product!.inStock) {
+      toast('This watch is currently out of stock.', { type: 'error' });
+      return;
+    }
+    addToCart({ product: product!, caseSize: selectedCaseSize, strap: selectedStrap || product!.strapOptions[0], color: selectedColor ?? undefined, quantity: qty });
     navigate('/checkout');
   }
 
@@ -643,6 +686,23 @@ export default function ProductDetail() {
               </div>
             )}
 
+            {/* Case size selector — flat chips */}
+            {product.caseSizeOptions.length > 0 && (
+              <div style={{ marginBottom: '1.25rem' }}>
+                <p className="eyebrow" style={{ margin: '0 0 0.625rem', color: 'var(--luna-muted)' }}>
+                  Case size — <span style={{ color: 'var(--luna-fg)', textTransform: 'none', letterSpacing: 0, fontWeight: 600 }}>{selectedCaseSize}</span>
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                  {product.caseSizeOptions.map(caseSize => (
+                    <button key={caseSize} type="button" onClick={() => setSelectedCaseSize(caseSize)}
+                      className={`chip${selectedCaseSize === caseSize ? ' active' : ''}`}>
+                      {caseSize}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Strap selector — flat chips */}
             {product.strapOptions.length > 0 && (
               <div style={{ marginBottom: '1.25rem' }}>
@@ -666,17 +726,17 @@ export default function ProductDetail() {
               <div style={{ display: 'flex', alignItems: 'center', border: '1px solid rgba(15,14,12,0.14)', width: 'fit-content' }}>
                 <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 36, height: 36, background: 'none', border: 'none', borderRight: '1px solid rgba(15,14,12,0.10)', color: 'var(--luna-fg)', cursor: 'pointer', fontSize: '1rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(15,14,12,0.05)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>−</button>
                 <span style={{ minWidth: 40, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: '0.9375rem' }}>{qty}</span>
-                <button onClick={() => setQty(q => q + 1)} style={{ width: 36, height: 36, background: 'none', border: 'none', borderLeft: '1px solid rgba(15,14,12,0.10)', color: 'var(--luna-fg)', cursor: 'pointer', fontSize: '1rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(15,14,12,0.05)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>+</button>
+                <button onClick={() => setQty(q => Math.min(20, q + 1))} disabled={qty >= 20} style={{ width: 36, height: 36, background: 'none', border: 'none', borderLeft: '1px solid rgba(15,14,12,0.10)', color: 'var(--luna-fg)', cursor: qty >= 20 ? 'not-allowed' : 'pointer', opacity: qty >= 20 ? 0.4 : 1, fontSize: '1rem', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 150ms' }} onMouseEnter={e => { if (qty < 20) e.currentTarget.style.background = 'rgba(15,14,12,0.05)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}>+</button>
               </div>
             </div>
 
             {/* CTA buttons */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
-              <button onClick={handleBuyNow} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.9375rem', fontWeight: 700, letterSpacing: '0.03em' }}>
-                Buy Now
+              <button onClick={handleBuyNow} disabled={!product.inStock} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.9375rem', fontWeight: 700, letterSpacing: '0.03em' }}>
+                {product.inStock ? 'Buy Now' : 'Out of Stock'}
               </button>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button onClick={handleAddToCart} className="btn btn-outline" style={{ flex: 1, justifyContent: 'center', fontSize: '0.875rem' }}>
+                <button onClick={handleAddToCart} disabled={!product.inStock} className="btn btn-outline" style={{ flex: 1, justifyContent: 'center', fontSize: '0.875rem' }}>
                   Add to Cart
                 </button>
                 <button onClick={handleWishlistToggle} style={{ width: 44, height: 44, borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.10)', color: wishlisted ? 'var(--luna-1)' : 'var(--luna-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 150ms, background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,22,20,0.08)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}>
@@ -746,10 +806,12 @@ export default function ProductDetail() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ margin: 0, fontWeight: 700, fontVariantNumeric: 'tabular-nums', fontSize: '1rem', color: 'var(--luna-1)' }}>{formatPrice(displayPrice)}</p>
           <p style={{ margin: 0, fontSize: '0.6875rem', color: 'var(--luna-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {selectedStrap}
+            {[selectedColor, selectedCaseSize, selectedStrap].filter(Boolean).join(' · ')}
           </p>
         </div>
-        <button onClick={handleAddToCart} className="btn btn-primary" style={{ padding: '0.5625rem 1.25rem', fontSize: '0.875rem', flexShrink: 0 }}>Add to Cart</button>
+        <button onClick={handleAddToCart} disabled={!product.inStock} className="btn btn-primary" style={{ padding: '0.5625rem 1.25rem', fontSize: '0.875rem', flexShrink: 0 }}>
+          {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+        </button>
       </div>
 
       <style>{`

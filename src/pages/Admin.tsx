@@ -459,6 +459,11 @@ function ProductModal({ initial, onClose, onSave }: {
     if (form.name.trim().length > 120) { setErr('Product name too long (max 120 characters)'); return; }
     if (form.codPrice <= 0 || form.codPrice > 10_000_000) { setErr('Price must be between 1 and 10,000,000'); return; }
     if (form.discountPercent < 0 || form.discountPercent > 80) { setErr('Discount must be between 0% and 80%'); return; }
+    const trackedStock = form.stock?.default;
+    if (trackedStock !== undefined && (!Number.isInteger(trackedStock) || trackedStock < 0 || trackedStock > 1_000_000)) {
+      setErr('Tracked stock must be a whole number between 0 and 1,000,000');
+      return;
+    }
 
     // Derive main image + gallery + video from color variants or fallback fields
     let mainImage = form.image;
@@ -477,7 +482,15 @@ function ProductModal({ initial, onClose, onSave }: {
 
     const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + form.id.slice(-6);
     try {
-      await onSave({ ...form, image: mainImage, slug, gallery, video: finalVideo, colorVariants: colorVariants.length ? colorVariants : undefined });
+      await onSave({
+        ...form,
+        image: mainImage,
+        slug,
+        gallery,
+        video: finalVideo,
+        colorVariants: colorVariants.length ? colorVariants : undefined,
+        inStock: trackedStock !== undefined ? trackedStock > 0 : form.inStock,
+      });
     } catch {
       setErr('Save failed. Check your internet connection and try again.');
     }
@@ -583,6 +596,18 @@ function ProductModal({ initial, onClose, onSave }: {
               <FieldSelect<WatchGender> label="Gender *" value={form.gender} onChange={v => set('gender', v)} options={ALL_GENDERS} />
               <FieldInput label="Price (Rs.) *" value={form.codPrice || ''} onChange={v => set('codPrice', Number(v))} type="number" placeholder="e.g. 19999" />
               <FieldInput label="Discount %" value={form.discountPercent || ''} onChange={v => set('discountPercent', Math.min(80, Math.max(0, Number(v))))} type="number" placeholder="0 – 80" />
+              <FieldInput
+                label="Tracked stock (optional)"
+                value={form.stock?.default ?? ''}
+                onChange={v => {
+                  const next = { ...(form.stock ?? {}) };
+                  if (v.trim() === '') delete next.default;
+                  else next.default = Math.max(0, Math.floor(Number(v)));
+                  set('stock', next);
+                }}
+                type="number"
+                placeholder="Blank = use In Stock toggle"
+              />
             </div>
 
             {/* ── Fallback images (only when no color variants) ── */}
@@ -984,8 +1009,15 @@ function Orders() {
               <p style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--luna-muted)', marginBottom: '0.75rem' }}>Items</p>
               {detail.items.map((item, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', padding: '0.375rem 0', borderBottom: '1px solid rgba(26,22,20,0.05)' }}>
-                  <span>{item.name} × {item.qty}</span>
-                  <span style={{ fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{formatPrice(item.price)}</span>
+                  <span>
+                    {item.name} × {item.qty}
+                    {(item.color || item.caseSize || item.strap) && (
+                      <small style={{ display: 'block', color: 'var(--luna-muted)', marginTop: '0.125rem' }}>
+                        {[item.color, item.caseSize, item.strap].filter(Boolean).join(' · ')}
+                      </small>
+                    )}
+                  </span>
+                  <span style={{ fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{formatPrice(item.price * item.qty)}</span>
                 </div>
               ))}
             </div>
@@ -1539,13 +1571,25 @@ function Settings() {
   const [shippingCostState, setShippingCostState] = useState(() => getShippingCost());
   const [shippingSaved, setShippingSaved] = useState(false);
 
+  useEffect(() => {
+    dbGetConfig<{ threshold: number; cost: number }>('shipping').then(config => {
+      if (!config) return;
+      setFreeShippingThreshold(config.threshold);
+      setShippingCostState(config.cost);
+    });
+  }, []);
+
   async function saveShipping() {
-    saveFreeShippingThreshold(freeShippingThreshold);
-    saveShippingCost(shippingCostState);
-    await dbSetConfig('shipping', { threshold: freeShippingThreshold, cost: shippingCostState });
-    window.dispatchEvent(new CustomEvent('sb-shipping-updated'));
-    setShippingSaved(true);
-    setTimeout(() => setShippingSaved(false), 2000);
+    try {
+      saveFreeShippingThreshold(freeShippingThreshold);
+      saveShippingCost(shippingCostState);
+      await dbSetConfig('shipping', { threshold: freeShippingThreshold, cost: shippingCostState });
+      window.dispatchEvent(new CustomEvent('sb-shipping-updated'));
+      setShippingSaved(true);
+      setTimeout(() => setShippingSaved(false), 2000);
+    } catch {
+      toast('Shipping settings could not be saved.', { type: 'error' });
+    }
   }
 
   const inputStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.10)', borderRadius: '0.375rem', padding: '0.3rem 0.625rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.875rem', outline: 'none', maxWidth: 160, textAlign: 'right' };
@@ -1567,11 +1611,13 @@ function Settings() {
             {[{ label: 'Store name', value: BRAND.name }, { label: 'Support email', value: BRAND.email }, { label: 'WhatsApp number', value: BRAND.whatsapp }, { label: 'Currency', value: BRAND.currency }].map(f => (
               <div key={f.label} style={rowStyle}>
                 <label style={labelStyle}>{f.label}</label>
-                <input defaultValue={f.value} style={inputStyle} />
+                <input value={f.value} readOnly aria-readonly="true" style={{ ...inputStyle, opacity: 0.72, cursor: 'not-allowed' }} />
               </div>
             ))}
           </div>
-          <button style={saveBtn}>Save General</button>
+          <p style={{ margin: '1rem 0 0', fontSize: '0.75rem', color: 'var(--luna-muted)', lineHeight: 1.6 }}>
+            General identity values are deployment configuration and are read-only here.
+          </p>
         </div>
 
         {/* Shipping */}
@@ -1601,7 +1647,7 @@ function Settings() {
             {[{ label: 'Standard delivery', value: '1–3 working days' }, { label: 'Coverage', value: 'Pakistan-wide' }, { label: 'Return window', value: '7 days' }].map(f => (
               <div key={f.label} style={rowStyle}>
                 <label style={labelStyle}>{f.label}</label>
-                <input defaultValue={f.value} style={inputStyle} />
+                <input value={f.value} readOnly aria-readonly="true" style={{ ...inputStyle, opacity: 0.72, cursor: 'not-allowed' }} />
               </div>
             ))}
           </div>

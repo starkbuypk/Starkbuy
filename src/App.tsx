@@ -7,7 +7,7 @@ import { WishlistProvider } from './context/WishlistContext';
 import { Layout } from './components/layout/Layout';
 import {
   Wishlist, TrackOrder,
-  About, Blog, BlogPost, Register, ForgotPassword,
+  About, Blog, BlogPost, Register, ForgotPassword, ResetPassword,
   ContactUs, ExchangePolicy, SizeGuide, PaymentMethods,
   PrivacyPolicy, TermsOfService, NotFound,
 } from './pages/stubs';
@@ -68,6 +68,7 @@ export default function App() {
                 <Route path="blog/:slug" element={<BlogPost />} />
                 <Route path="register" element={<Register />} />
                 <Route path="forgot-password" element={<ForgotPassword />} />
+                <Route path="reset-password" element={<ResetPassword />} />
                 <Route path="support/contact-us" element={<ContactUs />} />
                 <Route path="support/exchange-policy" element={<ExchangePolicy />} />
                 <Route path="support/size-guide" element={<SizeGuide />} />

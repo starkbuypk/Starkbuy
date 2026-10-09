@@ -23,3 +23,7 @@ logs/
 
 # Figma Make internal AI skills — not project source
 /.claude/
+
+# Test artifacts
+/test-results/
+/playwright-report/

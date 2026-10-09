@@ -6,5 +6,4 @@ export const BRAND = {
   email: 'starkbuypk@gmail.com',
   currency: 'PKR',
   currencySymbol: 'Rs.',
-  prepaidDiscount: 10,
 } as const;

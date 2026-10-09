@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { getProductPrice } from '../../utils/pricing';
 import { formatPrice } from '../../data/products';
 import { IconX, IconMinus, IconPlus, IconTrash } from '../icons/Icons';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 
 export function CartDrawer() {
   const { items, open, closeCart, removeFromCart, updateQty, subtotal } = useCart();
   const location = useLocation();
+  const dialogRef = useDialogA11y<HTMLDivElement>(open, closeCart);
 
   useEffect(() => { closeCart(); }, [location.pathname, closeCart]);
 
@@ -21,12 +24,20 @@ export function CartDrawer() {
 
   return (
     <>
-      <div className="drawer-overlay" onClick={closeCart} />
-      <div className="drawer glass" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="drawer-overlay" onClick={closeCart} aria-hidden="true" />
+      <div
+        ref={dialogRef}
+        className="drawer glass"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cart-drawer-title"
+        tabIndex={-1}
+        style={{ display: 'flex', flexDirection: 'column' }}
+      >
         {/* Header */}
         <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(26,22,20,0.08)', flexShrink: 0 }}>
           <div>
-            <h2 className="font-display" style={{ fontSize: '1.375rem', fontWeight: 600, margin: 0, lineHeight: 1 }}>Your Bag</h2>
+            <h2 id="cart-drawer-title" className="font-display" style={{ fontSize: '1.375rem', fontWeight: 600, margin: 0, lineHeight: 1 }}>Your Bag</h2>
             <p style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)', margin: '0.25rem 0 0' }}>{items.length} item{items.length !== 1 ? 's' : ''}</p>
           </div>
           <button className="btn-ghost" onClick={closeCart} aria-label="Close cart">
@@ -47,7 +58,7 @@ export function CartDrawer() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {items.map(item => (
                 <div
-                  key={`${item.product.id}-${item.caseSize}-${item.strap}`}
+                  key={`${item.product.id}-${item.caseSize}-${item.strap}-${item.color ?? ''}`}
                   style={{ display: 'flex', gap: '1rem', padding: '1rem', background: 'rgba(26,22,20,0.38)', borderRadius: 'var(--radius)', border: '1px solid rgba(26,22,20,0.06)' }}
                 >
                   <img
@@ -60,7 +71,7 @@ export function CartDrawer() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                       <p style={{ fontWeight: 500, fontSize: '0.9375rem', margin: 0, lineHeight: 1.3 }}>{item.product.name}</p>
                       <button
-                        onClick={() => removeFromCart(item.product.id, item.caseSize, item.strap)}
+                        onClick={() => removeFromCart(item.product.id, item.caseSize, item.strap, item.color)}
                         style={{ background: 'none', border: 'none', color: 'var(--luna-muted)', cursor: 'pointer', padding: '0.625rem', flexShrink: 0, borderRadius: '0.375rem' }}
                         aria-label="Remove item"
                       >
@@ -68,13 +79,13 @@ export function CartDrawer() {
                       </button>
                     </div>
                     <p style={{ fontSize: '0.8125rem', color: 'var(--luna-muted)', margin: '0.25rem 0 0.75rem' }}>
-                      {item.strap}
+                      {[item.color, item.caseSize, item.strap].filter(Boolean).join(' · ')}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       {/* Qty stepper */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.05)', borderRadius: '0.5rem', padding: '0.25rem' }}>
                         <button
-                          onClick={() => updateQty(item.product.id, item.caseSize, item.strap, item.quantity - 1)}
+                          onClick={() => updateQty(item.product.id, item.caseSize, item.strap, item.quantity - 1, item.color)}
                           style={{ background: 'none', border: 'none', color: 'var(--luna-fg)', cursor: 'pointer', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.375rem' }}
                           aria-label="Decrease quantity"
                         >
@@ -82,7 +93,7 @@ export function CartDrawer() {
                         </button>
                         <span style={{ minWidth: 20, textAlign: 'center', fontSize: '0.875rem', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>{item.quantity}</span>
                         <button
-                          onClick={() => updateQty(item.product.id, item.caseSize, item.strap, item.quantity + 1)}
+                          onClick={() => updateQty(item.product.id, item.caseSize, item.strap, item.quantity + 1, item.color)}
                           style={{ background: 'none', border: 'none', color: 'var(--luna-fg)', cursor: 'pointer', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.375rem' }}
                           aria-label="Increase quantity"
                         >
@@ -90,7 +101,7 @@ export function CartDrawer() {
                         </button>
                       </div>
                       <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: '0.9375rem', color: 'var(--luna-1)' }}>
-                        {formatPrice((item.product.discountPercent > 0 ? Math.round(item.product.codPrice * (1 - item.product.discountPercent / 100)) : item.product.codPrice) * item.quantity)}
+                        {formatPrice(getProductPrice(item.product) * item.quantity)}
                       </span>
                     </div>
                   </div>

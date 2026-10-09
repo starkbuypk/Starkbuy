@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { StarkBuyLogo } from '../StarkBuyLogo';
 import { BRAND } from '../../config';
 import { toast } from '../../utils/toast';
+import { supabaseAnonKey, supabaseUrl } from '../../lib/supabase';
 
 /* ── Social icons ─────────────────────────────────────────────── */
 function IconInstagram() {
@@ -95,13 +96,30 @@ const columns = [
 export function Footer() {
   const [email, setEmail] = useState('');
   const [joined, setJoined] = useState(false);
+  const [joining, setJoining] = useState(false);
 
-  function handleJoin(e: React.FormEvent) {
+  async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.includes('@')) return;
-    setJoined(true);
-    toast("You're subscribed — welcome to StarkBuy!");
-    setEmail('');
+    if (!email.includes('@') || joining) return;
+    setJoining(true);
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({ type: 'newsletter', email }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setJoined(true);
+      toast("You're subscribed — welcome to StarkBuy!");
+      setEmail('');
+    } catch {
+      toast('Could not subscribe right now. Please try again.', { type: 'error' });
+    } finally {
+      setJoining(false);
+    }
   }
 
   const linkStyle: React.CSSProperties = {
@@ -151,6 +169,7 @@ export function Footer() {
                 }}>
                   <span style={{ color: 'var(--luna-muted)', flexShrink: 0 }}><IconMailSend /></span>
                   <input
+                    aria-label="Email address for newsletter"
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
@@ -161,6 +180,7 @@ export function Footer() {
                 </div>
                 <button
                   type="submit"
+                  disabled={joining}
                   style={{
                     flexShrink: 0,
                     padding: '0 1.5rem',
@@ -179,7 +199,7 @@ export function Footer() {
                   }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
-                  Join
+                  {joining ? 'Joining…' : 'Join'}
                 </button>
               </form>
             )}

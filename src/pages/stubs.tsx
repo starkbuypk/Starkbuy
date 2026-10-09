@@ -1,5 +1,5 @@
 /* Functional stub pages — each at its own route */
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { formatPrice } from '../data/products';
 import { ProductCard } from '../components/ProductCard';
 import { useWishlist } from '../context/WishlistContext';
@@ -7,7 +7,7 @@ import { BRAND } from '../config';
 import { useState, useEffect, useRef } from 'react';
 import { useAllProducts } from '../hooks/useStoreData';
 import { getAbout } from '../utils/adminStore';
-import { supabaseUrl, supabaseAnonKey } from '../lib/supabase';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { dbTrackOrder, type StoredOrder } from '../utils/supabaseStore';
 import { useBusinessHours } from '../hooks/useStoreData';
 
@@ -275,7 +275,14 @@ export function TrackOrder() {
               <p style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--luna-muted)', margin: '0 0 0.75rem' }}>Items ordered</p>
               {order.items.map((item, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.375rem' }}>
-                  <span>{item.name} × {item.qty}</span>
+                  <span>
+                    {item.name} × {item.qty}
+                    {(item.color || item.caseSize || item.strap) && (
+                      <small style={{ display: 'block', color: 'var(--luna-muted)', marginTop: '0.125rem' }}>
+                        {[item.color, item.caseSize, item.strap].filter(Boolean).join(' · ')}
+                      </small>
+                    )}
+                  </span>
                   <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--luna-muted)' }}>{formatPrice(item.price * item.qty)}</span>
                 </div>
               ))}
@@ -370,7 +377,7 @@ export function About() {
 const blogPosts = [
   { slug: 'how-to-choose-watch-size', title: 'How to Choose the Right Watch Size', tag: 'Guide', readTime: '4 min', excerpt: 'Case size affects comfort, proportion, and wrist presence. Here is how we recommend choosing yours.' },
   { slug: 'leather-vs-steel-bracelet', title: 'Leather vs. Steel Bracelet: A Practical Comparison', tag: 'Style', readTime: '5 min', excerpt: 'Both have their place. The choice depends on lifestyle, climate, and the occasions you dress for.' },
-  { slug: 'cod-vs-prepaid-guide', title: 'COD vs. Prepaid — What Works Best for You', tag: 'Buying Guide', readTime: '3 min', excerpt: 'Cash on delivery offers peace of mind. Prepaid saves you 10%. Here is how to decide.' },
+  { slug: 'cash-on-delivery-guide', title: 'How Cash on Delivery Works at StarkBuy', tag: 'Buying Guide', readTime: '3 min', excerpt: 'Place your order online and pay the confirmed amount when your parcel arrives at your doorstep.' },
 ];
 
 export function Blog() {
@@ -423,32 +430,136 @@ function AuthShell({ title, children }: { title: string; children: React.ReactNo
 const inputStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(26,22,20,0.12)', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: 'var(--luna-fg)', fontFamily: 'DM Sans, sans-serif', outline: 'none', fontSize: '0.9375rem', width: '100%' };
 
 export function Register() {
+  const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [verificationSent, setVerificationSent] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    if (name.trim().length < 2) { setError('Enter your full name.'); return; }
+    if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
+
+    setSubmitting(true);
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password,
+      options: {
+        data: { full_name: name.trim() },
+        emailRedirectTo: `${window.location.origin}/account`,
+      },
+    });
+    setSubmitting(false);
+
+    if (signUpError) { setError(signUpError.message); return; }
+    if (data.session) navigate('/account');
+    else setVerificationSent(true);
+  }
+
   return (
     <AuthShell title="Create account">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <input placeholder="Full name" style={inputStyle} />
-        <input placeholder="Email address" type="email" style={inputStyle} />
-        <input placeholder="Password" type="password" style={inputStyle} />
-        <input placeholder="Confirm password" type="password" style={inputStyle} />
-        <Link to="/" className="btn btn-primary" style={{ display: 'flex' }}>Create Account</Link>
-        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--luna-muted)', margin: 0 }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--luna-1)', textDecoration: 'none' }}>Sign in</Link>
-        </p>
-      </div>
+      {verificationSent ? (
+        <div role="status">
+          <p style={{ color: 'var(--luna-muted)', lineHeight: 1.7 }}>Check your inbox to verify your email, then sign in to your account.</p>
+          <Link to="/login" className="btn btn-primary" style={{ display: 'flex' }}>Go to sign in</Link>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Full name
+            <input value={name} onChange={e => setName(e.target.value)} autoComplete="name" required maxLength={80} style={{ ...inputStyle, marginTop: '0.375rem' }} />
+          </label>
+          <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Email address
+            <input value={email} onChange={e => setEmail(e.target.value)} type="email" autoComplete="email" required maxLength={120} style={{ ...inputStyle, marginTop: '0.375rem' }} />
+          </label>
+          <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Password
+            <input value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="new-password" required minLength={8} style={{ ...inputStyle, marginTop: '0.375rem' }} />
+          </label>
+          <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Confirm password
+            <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type="password" autoComplete="new-password" required minLength={8} style={{ ...inputStyle, marginTop: '0.375rem' }} />
+          </label>
+          {error && <p role="alert" style={{ color: '#C44830', fontSize: '0.8125rem', margin: 0 }}>{error}</p>}
+          <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Creating account…' : 'Create Account'}</button>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--luna-muted)', margin: 0 }}>
+            Already have an account?{' '}
+            <Link to="/login" style={{ color: 'var(--luna-1)', textDecoration: 'none' }}>Sign in</Link>
+          </p>
+        </form>
+      )}
     </AuthShell>
   );
 }
 
 export function ForgotPassword() {
+  const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setSubmitting(false);
+    if (resetError) { setError(resetError.message); return; }
+    setSent(true);
+  }
+
   return (
     <AuthShell title="Reset password">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <p style={{ color: 'var(--luna-muted)', fontSize: '0.9375rem', margin: 0 }}>Enter your email and we'll send you a reset link.</p>
-        <input placeholder="Email address" type="email" style={inputStyle} />
-        <button className="btn btn-primary">Send Reset Link</button>
+        <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Email address
+          <input value={email} onChange={e => setEmail(e.target.value)} type="email" autoComplete="email" required style={{ ...inputStyle, marginTop: '0.375rem' }} />
+        </label>
+        {sent && <p role="status" style={{ color: '#3A7A38', fontSize: '0.8125rem', margin: 0 }}>Password reset link sent. Check your inbox.</p>}
+        {error && <p role="alert" style={{ color: '#C44830', fontSize: '0.8125rem', margin: 0 }}>{error}</p>}
+        <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Sending…' : 'Send Reset Link'}</button>
         <Link to="/login" style={{ textAlign: 'center', color: 'var(--luna-muted)', fontSize: '0.8125rem', textDecoration: 'none' }}>Back to sign in</Link>
-      </div>
+      </form>
+    </AuthShell>
+  );
+}
+
+export function ResetPassword() {
+  const navigate = useNavigate();
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
+    setSubmitting(true);
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+    setSubmitting(false);
+    if (updateError) { setError(updateError.message); return; }
+    navigate('/account', { replace: true });
+  }
+
+  return (
+    <AuthShell title="Choose a new password">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>New password
+          <input value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="new-password" required minLength={8} style={{ ...inputStyle, marginTop: '0.375rem' }} />
+        </label>
+        <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Confirm new password
+          <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type="password" autoComplete="new-password" required minLength={8} style={{ ...inputStyle, marginTop: '0.375rem' }} />
+        </label>
+        {error && <p role="alert" style={{ color: '#C44830', fontSize: '0.8125rem', margin: 0 }}>{error}</p>}
+        <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Updating…' : 'Update Password'}</button>
+      </form>
     </AuthShell>
   );
 }
@@ -573,11 +684,10 @@ export function ContactUs() {
             e.preventDefault();
             setSending(true); setSendError('');
             try {
-              const html = `<h2>New Inquiry — ${subject}</h2><p><strong>From:</strong> ${name} (${email})</p><p><strong>Message:</strong><br/>${message.replace(/\n/g, '<br/>')}</p>`;
               const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseAnonKey}` },
-                body: JSON.stringify({ to: { email: 'starkbuypk@gmail.com', name: 'StarkBuy Admin' }, subject: `[Contact] ${subject} from ${name}`, html }),
+                body: JSON.stringify({ type: 'contact', name, email, subject, message }),
               });
               if (!res.ok) throw new Error(`HTTP ${res.status}`);
               setSent(true);
@@ -654,8 +764,6 @@ export function PaymentMethods() {
       <div style={{ maxWidth: 540, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {[
           { label: 'Cash on Delivery (COD)', desc: 'Pay when your order arrives. Available across Pakistan.' },
-          { label: `JazzCash / EasyPaisa — save ${BRAND.prepaidDiscount}%`, desc: 'Transfer via mobile wallet. We confirm and ship same day.' },
-          { label: `Bank Transfer — save ${BRAND.prepaidDiscount}%`, desc: 'Transfer to our bank account. Share your receipt on WhatsApp.' },
         ].map(m => (
           <div key={m.label} style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(26,22,20,0.08)', borderRadius: 'var(--radius)' }}>
             <p style={{ fontWeight: 600, margin: '0 0 0.375rem' }}>{m.label}</p>

@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { IconX } from '../icons/Icons';
 import { BRAND } from '../../config';
+import { useShippingConfig } from '../../hooks/useStoreData';
 
 export function AnnouncementBar() {
   const [dismissed, setDismissed] = useState(false);
+  const { threshold } = useShippingConfig();
   if (dismissed) return null;
   return (
     <div className="announcement-bar" style={{ position: 'relative' }}>
       <span>
-        Pay now &amp; save {BRAND.prepaidDiscount}% — prepaid orders get an instant discount at checkout.{' '}
+        Cash on delivery across Pakistan — free shipping above {BRAND.currencySymbol} {threshold.toLocaleString()}.{' '}
         <a
-          href="/checkout"
+          href="/collections"
           style={{ color: 'var(--luna-1)', textDecoration: 'none', fontWeight: 500 }}
         >
-          Shop now
+          Browse watches
         </a>
       </span>
       <button

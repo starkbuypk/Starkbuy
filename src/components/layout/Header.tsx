@@ -6,6 +6,7 @@ import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useAuth } from '../../context/AuthContext';
 import { SearchOverlay } from './SearchOverlay';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 
 function AccountDropdown({ user, onClose }: { user: { email?: string | null; user_metadata?: Record<string, string> }; onClose: () => void }) {
   const { signOut, isAdmin } = useAuth();
@@ -117,7 +118,15 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useDialogA11y<HTMLDivElement>(mobileMenuOpen, () => setMobileMenuOpen(false));
   const location = useLocation();
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [mobileMenuOpen]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -265,11 +274,17 @@ export function Header() {
       {mobileMenuOpen && (
         <>
           <div
+            aria-hidden="true"
             className="drawer-overlay"
             onClick={() => setMobileMenuOpen(false)}
             style={{ zIndex: 300 }}
           />
           <div
+            ref={mobileMenuRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile navigation"
+            tabIndex={-1}
             style={{
               position: 'fixed',
               top: 0,

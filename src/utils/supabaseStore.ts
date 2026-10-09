@@ -4,16 +4,27 @@
  */
 import { supabase } from '../lib/supabase';
 import type { Product } from '../data/products';
+import { createAsyncCache } from './asyncCache';
 
 /* ── Products ────────────────────────────────────────────────────── */
 
-export async function dbGetProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from('products')
-    .select('data')
-    .order('created_at', { ascending: true });
-  if (error) { if (import.meta.env.DEV) console.error('dbGetProducts:', error); return []; }
-  return (data ?? []).map((row) => row.data as Product);
+const storeCache = createAsyncCache(60_000);
+const PRODUCTS_CACHE_KEY = 'products';
+
+export async function dbGetProducts(force = false): Promise<Product[]> {
+  try {
+    return await storeCache.get(PRODUCTS_CACHE_KEY, async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('data')
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((row) => row.data as Product);
+    }, { force });
+  } catch (error) {
+    if (import.meta.env.DEV) console.error('dbGetProducts:', error);
+    return [];
+  }
 }
 
 export async function dbSaveProduct(p: Product): Promise<void> {
@@ -21,11 +32,13 @@ export async function dbSaveProduct(p: Product): Promise<void> {
     .from('products')
     .upsert({ id: p.id, data: p }, { onConflict: 'id' });
   if (error) throw new Error(error.message);
+  storeCache.invalidate(PRODUCTS_CACHE_KEY);
 }
 
 export async function dbDeleteProduct(id: string): Promise<void> {
   const { error } = await supabase.from('products').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  storeCache.invalidate(PRODUCTS_CACHE_KEY);
 }
 
 /* ── Shared types ────────────────────────────────────────────────── */
@@ -37,7 +50,7 @@ export interface StoredOrder {
   email: string;
   address: string;
   city: string;
-  items: { name: string; qty: number; price: number }[];
+  items: { name: string; qty: number; price: number; color?: string; caseSize?: string; strap?: string }[];
   subtotal: number;
   shipping: number;
   codFee: number;
@@ -85,24 +98,6 @@ function rowToOrder(row: any): StoredOrder {
   };
 }
 
-function orderToRow(o: StoredOrder) {
-  return {
-    id: o.id,
-    name: o.name,
-    phone: o.phone,
-    email: o.email,
-    address: o.address,
-    city: o.city,
-    items: o.items,
-    subtotal: o.subtotal,
-    shipping: o.shipping,
-    cod_fee: o.codFee,
-    total: o.total,
-    status: o.status,
-    date: o.date,
-  };
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rowToCoupon(row: any): StoredCoupon {
   return {
@@ -136,7 +131,7 @@ export interface PlaceOrderResult {
   cod_fee: number;
   discount: number;
   total: number;
-  items: { name: string; qty: number; price: number }[];
+  items: { name: string; qty: number; price: number; color?: string; caseSize?: string; strap?: string }[];
 }
 
 export async function dbPlaceOrder(params: {
@@ -147,7 +142,7 @@ export async function dbPlaceOrder(params: {
   address: string;
   city: string;
   date: string;
-  item_refs: { id: string; qty: number }[];
+  item_refs: { id: string; qty: number; color?: string; caseSize: string; strap: string }[];
   coupon_code?: string | null;
 }): Promise<PlaceOrderResult> {
   const { data, error } = await supabase.rpc('place_order', {
@@ -184,11 +179,6 @@ export async function dbGetOrders(): Promise<StoredOrder[]> {
     .order('created_at', { ascending: false });
   if (error) { if (import.meta.env.DEV) console.error('dbGetOrders:', error); return []; }
   return (data ?? []).map(rowToOrder);
-}
-
-export async function dbSaveOrder(order: StoredOrder): Promise<void> {
-  const { error } = await supabase.from('orders').insert(orderToRow(order));
-  if (error) throw new Error(error.message);
 }
 
 export async function dbUpdateOrderStatus(id: string, status: StoredOrder['status']): Promise<void> {
@@ -290,46 +280,52 @@ export async function dbClearAuditLog(): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-/* ── Review stats — cached, deduped ────────────────────────────── */
-
-let _reviewStatsCache: { data: Record<string, { count: number; avg: number }>; ts: number } | null = null;
-let _reviewStatsPromise: Promise<Record<string, { count: number; avg: number }>> | null = null;
+/* ── Review stats ──────────────────────────────────────────────── */
 
 export function invalidateReviewStatsCache() {
-  _reviewStatsCache = null;
-  _reviewStatsPromise = null;
+  storeCache.invalidate('review-stats');
 }
 
-export async function dbGetReviewStats(): Promise<Record<string, { count: number; avg: number }>> {
-  if (_reviewStatsCache && Date.now() - _reviewStatsCache.ts < 60_000) return _reviewStatsCache.data;
-  if (_reviewStatsPromise) return _reviewStatsPromise;
-  _reviewStatsPromise = (async () => {
-    const { data } = await supabase.from('product_reviews').select('product_id, rating');
-    const map: Record<string, { count: number; sum: number }> = {};
-    for (const row of data ?? []) {
-      if (!map[row.product_id]) map[row.product_id] = { count: 0, sum: 0 };
-      map[row.product_id].count++;
-      map[row.product_id].sum += row.rating;
-    }
-    const result: Record<string, { count: number; avg: number }> = {};
-    for (const [id, { count, sum }] of Object.entries(map)) result[id] = { count, avg: sum / count };
-    _reviewStatsCache = { data: result, ts: Date.now() };
-    _reviewStatsPromise = null;
-    return result;
-  })();
-  return _reviewStatsPromise;
+export async function dbGetReviewStats(force = false): Promise<Record<string, { count: number; avg: number }>> {
+  try {
+    return await storeCache.get('review-stats', async () => {
+      const { data, error } = await supabase.from('product_reviews').select('product_id, rating');
+      if (error) throw error;
+      const map: Record<string, { count: number; sum: number }> = {};
+      for (const row of data ?? []) {
+        if (!map[row.product_id]) map[row.product_id] = { count: 0, sum: 0 };
+        map[row.product_id].count++;
+        map[row.product_id].sum += row.rating;
+      }
+      const result: Record<string, { count: number; avg: number }> = {};
+      for (const [id, { count, sum }] of Object.entries(map)) {
+        result[id] = { count, avg: sum / count };
+      }
+      return result;
+    }, { force });
+  } catch (error) {
+    if (import.meta.env.DEV) console.error('dbGetReviewStats:', error);
+    return {};
+  }
 }
 
 /* ── Site Config (categories, shipping, etc.) ────────────────────── */
 
-export async function dbGetConfig<T>(key: string): Promise<T | null> {
-  const { data, error } = await supabase
-    .from('site_config')
-    .select('value')
-    .eq('key', key)
-    .maybeSingle();
-  if (error) { if (import.meta.env.DEV) console.error('dbGetConfig:', error); return null; }
-  return data ? (data.value as T) : null;
+export async function dbGetConfig<T>(key: string, force = false): Promise<T | null> {
+  try {
+    return await storeCache.get(`config:${key}`, async () => {
+      const { data, error } = await supabase
+        .from('site_config')
+        .select('value')
+        .eq('key', key)
+        .maybeSingle();
+      if (error) throw error;
+      return data ? (data.value as T) : null;
+    }, { force });
+  } catch (error) {
+    if (import.meta.env.DEV) console.error('dbGetConfig:', error);
+    return null;
+  }
 }
 
 export async function dbSetConfig<T>(key: string, value: T): Promise<void> {
@@ -337,4 +333,5 @@ export async function dbSetConfig<T>(key: string, value: T): Promise<void> {
     .from('site_config')
     .upsert({ key, value }, { onConflict: 'key' });
   if (error) throw new Error(error.message);
+  storeCache.invalidate(`config:${key}`);
 }
